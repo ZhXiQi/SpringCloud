@@ -1,0 +1,37 @@
+server:
+  port: 9095
+
+spring:
+  application:
+    name: service-feign
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    #register-with-eureka默认是true
+    #register-with-eureka: true
+    #fetch-register默认是true
+    #fetch-registry: true
+  instance:
+    hostname: service-feign
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    appname: feign
+
+#可以配合FeignRibbonConfig使用，手动加载listOfServers列表的客户端
+#client:
+#  ribbon:
+#    listOfServers: http://localhost:9091/,http://localhost:9092/
+
+#ribbon:
+#  eager-load:
+#    #开启Ribbon的饥饿加载模式，开始后会在项目启动的时候全部先加载，否则是使用到才加载
+#    enabled: true
+#    #指定需要饥饿加载的客户端名称、服务名
+#    clients: service-hi
+
+#hystrix默认是关闭的，所以需要设置开启断路器设置
+feign:
+  hystrix:
+    enabled: true
