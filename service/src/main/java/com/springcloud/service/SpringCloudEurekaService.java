@@ -16,7 +16,12 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
  *
  * 注解 @EnableEurekaServer 表明自己是一个 eurekaServer
  *
- * @SpringCloudApplication 包含了 @SpringBootApplication
+ * 注解@SpringCloudApplication包括：
+ *  @SpringBootApplication、
+ *  @EnableDiscoveryClient、
+ *  @EnableCircuitBreaker，
+ * 分别是SpringBoot注解、注册服务中心Eureka注解、断路器注解。对于SpringCloud来说，这是每一微服务必须应有的三个注解，所以才推出了@SpringCloudApplication这一注解集合
+ * 使用@SpringCloudApplication需要进入Springboot依赖外，还需要引入[eureka-client] 和 [hystrix] 两个依赖：
  *
  */
 @EnableEurekaServer
