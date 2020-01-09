@@ -1,0 +1,31 @@
+server:
+  port: 9091
+
+eureka:
+  instance:
+    hostname: clientOne
+    appname: clientOneAppName
+    # prefer-ip-address获取的是内网IP
+    prefer-ip-address: true
+    # 服务器上如果需要外网链接需要配置下面的参数
+    #ip-address: ${外网IP}
+    # 每间隔30s(默认)，向服务端发送一次心跳，证明自己依然”存活“
+    lease-renewal-interval-in-seconds: 30
+    # 告诉服务端，如果我60s之内没有给你发心跳，就代表我“死”了，将我踢出掉。
+    lease-expiration-duration-in-seconds: 60
+  client:
+    service-url:
+      # 仅仅 @EnableEurekaClient 是不够的，还需要在配置文件中注明自己的服务注册中心的地址，application.yml配置文件如下，url为service启动的地址
+      defaultZone: http://localhost:9090/eureka/
+#    proxy-port: 9092
+spring:
+#  datasource:
+#    url: jdbc:mysql://127.0.0.1:3306/puer?useUnicode=true&characterEncoding=utf8&verifyServerCertificate=false&useSSL=false&useOldAliasMetadataBehavior=true&serverTimezone=GMT%2B8&
+#    username: root
+#    password: root
+  application:
+    # 需要指明 spring.application.name,这个很重要，这在以后的服务与服务之间相互调用一般都是根据这个name，service中可以看到下面名称的实例
+    name: service-hi
+  devtools:
+    livereload:
+      port: 35730

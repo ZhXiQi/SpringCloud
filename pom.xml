@@ -65,6 +65,7 @@
                 <version>Finchley.RELEASE</version>
                 <!--
                 上面版本的 zuul 会和 springboot有bean冲突，改成下面的就好了
+                SpringBoot 和 SpringCloud 的版本对应比较严格，很多问题可能是版本导致的
                 -->
 <!--                <version>Greenwich.RELEASE</version>-->
                 <type>pom</type>
