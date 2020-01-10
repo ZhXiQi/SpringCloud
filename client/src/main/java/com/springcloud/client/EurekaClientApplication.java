@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * @author ZhXiQi
@@ -11,9 +12,9 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
  * @date 2019-07-22 11:14
  *
  * 注解 @EnableEurekaClient 表明自己是一个 eurekaClient
+ * 使用feign，需要开启feign功能
  */
-//@SpringBootApplication
-//@EnableEurekaClient
+@EnableFeignClients
 @SpringCloudApplication
 public class EurekaClientApplication {
 
