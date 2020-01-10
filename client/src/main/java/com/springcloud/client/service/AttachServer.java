@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author ZhXiQi
  * @Title: feign调用附件服务（微服务客户端配合feign使用（ribbon同理））
+ * controller层安装常规的写法书写，并调用此层来进行 feign 调用
  * @date 2019/8/27 19:48
  */
 @FeignClient(value = "attachment", path = "/v1/attachment", configuration = FeignConfig.class, fallback = AttachServerFallback.class)
