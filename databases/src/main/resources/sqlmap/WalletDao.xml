@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.core.dao.WalletDao">
+    <insert id="insertWithReturn" parameterType="com.springboot.core.bean.auto.WalletBean" useGeneratedKeys="true" keyProperty="id">
+        insert into wallet (id, create_time,
+        update_time, wallet_num,
+        org_name, address, balance,
+        card_num, user_id, wallet_status,
+        card_balance, account_json,
+        wallet_type, bank_name)
+        values (#{id,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{walletNum,jdbcType=VARCHAR},
+        #{orgName,jdbcType=VARCHAR}, #{address,jdbcType=CHAR}, #{balance,jdbcType=DECIMAL},
+        #{cardNum,jdbcType=CHAR}, #{userId,jdbcType=BIGINT}, #{walletStatus,jdbcType=TINYINT},
+        #{cardBalance,jdbcType=DECIMAL}, #{accountJson,jdbcType=VARCHAR},
+        #{walletType,jdbcType=TINYINT}, #{bankName,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="selectWalletListByExample" parameterType="com.springboot.core.bean.auto.WalletBean" resultType="com.springboot.core.model.WalletListVo">
+        select
+            distinct
+        wallet_num, create_time, org_name, address, balance, card_num, user_id, id, wallet_status as status, wallet_type as walletType
+        from wallet
+        <where>
+            <if test="walletBean.id != null">
+                id = #{walletBean.id,jdbcType=BIGINT},
+            </if>
+            <if test="walletBean.createTime != null">
+                create_time = #{walletBean.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="walletBean.updateTime != null">
+                update_time = #{walletBean.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="walletBean.walletNum != null">
+                wallet_num = #{walletBean.walletNum,jdbcType=VARCHAR},
+            </if>
+            <if test="walletBean.orgName != null">
+                org_name = #{walletBean.orgName,jdbcType=VARCHAR},
+            </if>
+            <if test="walletBean.address != null">
+                address = #{walletBean.address,jdbcType=CHAR},
+            </if>
+            <if test="walletBean.balance != null">
+                balance = #{walletBean.balance,jdbcType=DECIMAL},
+            </if>
+            <if test="walletBean.cardNum != null">
+                card_num = #{walletBean.cardNum,jdbcType=CHAR},
+            </if>
+            <if test="walletBean.userId != null">
+                user_id = #{walletBean.userId,jdbcType=BIGINT}
+            </if>
+        </where>
+
+        <if test="walletBean.order != null">
+            order by #{walletBean.order}
+        </if>
+        <if test="walletBean.sort != null">
+            #{walletBean.sort}
+        </if>
+        LIMIT #{walletBean.offset},#{walletBean.pageSize}
+    </select>
+
+
+    <select id="countAndSumByUserId" parameterType="java.lang.Long" resultType="com.springboot.core.model.HomeWalletVo">
+        SELECT count(*) as walletCount , sum(balance) as walletTotalBalance FROM wallet WHERE user_id = #{userId}
+    </select>
+
+    <select id="getHistoryOrg" parameterType="java.lang.String" resultType="com.springboot.core.model.OrgVo" >
+        select
+            orgName,address,sum(outMoney)as outMoney,sum(inMoney)as inMoney, wallet_num, bank_name
+        from
+            (
+                select
+                    org_name as orgName, o.address ,sum(tr.money) as outMoney,0 as inMoney, o.wallet_num, o.bank_name
+                from
+                    tx_record tr
+                left join
+                    wallet o on o.address=tr.to_address
+                where
+                    from_address = #{address} and type = 2
+                group by
+                    to_address,orgName,wallet_num
+            union
+                select
+                    org_name as orgName, o.address ,0 as outMoney,sum(tr.money) as inMoney, o.wallet_num, o.bank_name
+                from
+                    tx_record tr
+                left join
+                    wallet o on o.address=tr.from_address
+                where
+                    to_address = #{address} and type = 2
+                group by
+                    from_address,orgName,wallet_num) t
+        group by
+            address,orgName,wallet_num,bank_name
+    </select>
+
+
+    <select id="sumBalanceByExample" parameterType="com.springboot.core.bean.auto.WalletBeanExample" resultType="java.math.BigDecimal">
+        select sum(balance) from wallet
+        <if test="_parameter != null">
+            <include refid="com.springboot.core.dao.auto.WalletBeanMapper.Example_Where_Clause" />
+        </if>
+    </select>
+
+    <select id="selectByAddress" parameterType="java.lang.String" resultType="com.springboot.core.bean.auto.WalletBean">
+        select
+            <include refid="com.springboot.core.dao.auto.WalletBeanMapper.Base_Column_List" />
+        from
+            wallet
+        where
+            address = #{fromAddress}
+    </select>
+
+    <select id="selectById" parameterType="java.lang.Long" resultType="com.springboot.core.model.WalletVo">
+        SELECT user_id,wallet_num,org_name,bank_name,wallet_status FROM wallet WHERE id = #{walletId}
+    </select>
+
+</mapper>

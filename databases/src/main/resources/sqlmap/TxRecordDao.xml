@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.core.dao.TxRecordDao">
+
+    <!--    todo: 下面两个SQL可合并    可删除
+
+    <select id="getTransListByExample" parameterType="java.lang.String" resultType="cn.xxx.core.model.TransListVo">
+        select
+            r.tx_hash as txHash, o.org_name as OrgName,
+            case  when r.type = 2 and o.address = r.to_address then 0
+            when r.type = 2 and o.address = r.from_address then 1
+            else r.type
+            end as type,
+            r.money, r.create_time as dateTime,
+            (select `org_name` from organization where address = r.`from_address` or `card_num` = r.`from_address`) as fromName,
+            (select `org_name` from organization where address = r.`to_address` or `card_num` = r.`to_address`) as toName,
+            remark
+
+        from tx_record as r
+        join organization as o on o.`address` in (r.`to_address`,r.`from_address`)
+        <where>
+            <if test="address != null">
+                o.address = #{address}
+            </if>
+        </where>
+        order by r.create_time desc
+    </select>
+
+    <select id="getTransListByAddressAndType" resultType="cn.xxx.core.model.TransListVo" >
+        select
+        r.tx_hash as txHash, o.org_name as OrgName,
+        case  when r.type = 2 and o.address = r.to_address then 0
+        when r.type = 2 and o.address = r.from_address then 1
+        else r.type
+        end as type,
+        r.money, r.create_time as dateTime,
+        (select `org_name` from organization where address = r.`from_address` or `card_num` = r.`from_address`) as fromName,
+        (select `org_name` from organization where address = r.`to_address` or `card_num` = r.`to_address`) as toName,
+        remark
+
+        from tx_record as r
+        join organization as o on
+        r.type = #{type}
+        and
+        o.address in (r.to_address,r.from_address)
+        <where>
+            <if test="address != null">
+                o.address = #{address}
+            </if>
+        </where>
+        order by r.create_time desc
+    </select>
+    -->
+
+    <select id="getList" resultType="com.springboot.core.model.TransListVo" >
+        SELECT
+            r.id as txId,
+            r.serial_num as serialNum,
+		    r.tx_hash as txHash,
+		    fw.org_name as OrgName,
+            case when r.type = 2 and #{address} = r.to_address then 0
+            when r.type = 2 and #{address} = r.from_address then 1
+            else r.type
+            end as type,
+            r.money,
+            r.create_time as dateTime,
+            fw.org_name as fromOrgName,
+            fw.wallet_num as fromWalletNum,
+            fw.address as fromWalletAddr,
+            tw.org_name as toOrgName,
+            tw.wallet_num as toWalletNum,
+            tw.address as toWalletAddr,
+            r.remark,
+            r.from_address,r.to_address
+        FROM tx_record as r
+        LEFT JOIN wallet as fw ON fw.address = r.from_address
+        LEFT JOIN wallet as tw ON tw.address = r.to_address
+        <where>
+            <if test="type != null">
+                r.type = #{type}
+            </if>
+        </where>
+        <if test="address != null">
+            having
+            <choose>
+                <when test="from == null">
+                    #{address} in (r.from_address,r.to_address)
+                </when>
+                <otherwise>
+                    <if test="from==true">
+                        r.from_address = #{address}
+                    </if>
+                    <if test="from==false">
+                        r.to_address = #{address}
+                    </if>
+                </otherwise>
+
+            </choose>
+
+        </if>
+        order by r.create_time desc
+    </select>
+
+
+    <select id="sumMoneyByExample" parameterType="com.springboot.core.bean.auto.TxRecordBeanExample" resultType="java.math.BigDecimal">
+        select IFNULL(SUM(money),0) from tx_record
+        <if test="_parameter != null">
+            <include refid="com.springboot.core.dao.auto.TxRecordBeanMapper.Example_Where_Clause" />
+        </if>
+    </select>
+
+    <select id="selectBySerialNum" parameterType="java.lang.Long" resultType="com.springboot.core.bean.auto.TxRecordBean">
+        select
+            <include refid="com.springboot.core.dao.auto.TxRecordBeanMapper.Base_Column_List" />
+        from
+            tx_record
+        where
+            serial_num = #{serialNum}
+    </select>
+
+    <insert id="insertReturnId" parameterType="com.springboot.core.bean.auto.TxRecordBean" keyProperty="id" useGeneratedKeys="true">
+        insert into tx_record (id, create_time,
+        update_time, tx_hash,
+        hash, block_num,
+        to_address, from_address,
+        money, remark, handle_time,
+        status, type, serial_num,
+        from_card_num, to_card_num,
+        from_balance, to_balance)
+        values (#{id,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{txHash,jdbcType=VARCHAR},
+        #{hash,jdbcType=VARCHAR}, #{blockNum,jdbcType=INTEGER},
+        #{toAddress,jdbcType=VARCHAR}, #{fromAddress,jdbcType=VARCHAR},
+        #{money,jdbcType=DECIMAL}, #{remark,jdbcType=VARCHAR}, #{handleTime,jdbcType=INTEGER},
+        #{status,jdbcType=INTEGER}, #{type,jdbcType=INTEGER}, #{serialNum,jdbcType=BIGINT},
+        #{fromCardNum,jdbcType=CHAR}, #{toCardNum,jdbcType=CHAR},
+        #{fromBalance,jdbcType=DECIMAL}, #{toBalance,jdbcType=DECIMAL})
+    </insert>
+
+    <select id="selectTxRecordBySerialNumAndType"  resultType="com.springboot.core.model.TxRecordVo">
+        SELECT
+        t.serial_num,t.type as txType,t.money,t.`status`,t.create_time
+        ,fromW.address AS fromAddr,fromW.org_name as fromOrgName,fromW.wallet_num AS fromWalletNum
+        ,toW.address AS toAddr,toW.org_name as toOrgName, toW.wallet_num AS toWalletNum
+        ,t.remark,tmp.txHashList
+        FROM tx_record as t
+        LEFT JOIN wallet AS fromW ON fromW.address = t.from_address
+        LEFT JOIN wallet AS toW ON toW.address = t.to_address
+        LEFT JOIN (SELECT serial_num,GROUP_CONCAT(CONCAT_WS(";",type,tx_hash)) txHashList FROM tx_record GROUP BY serial_num) tmp ON t.serial_num = tmp.serial_num
+        WHERE t.serial_num = #{serialNum}
+        <if test="type != null">
+            and t.type = #{type}
+        </if>
+    </select>
+
+</mapper>

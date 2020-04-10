@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.core.dao.auto.TxRecordBeanMapper">
+  <resultMap id="BaseResultMap" type="com.springboot.core.bean.auto.TxRecordBean">
+    <constructor>
+      <idArg column="id" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="create_time" javaType="java.time.LocalDateTime" jdbcType="TIMESTAMP" />
+      <arg column="update_time" javaType="java.time.LocalDateTime" jdbcType="TIMESTAMP" />
+      <arg column="tx_hash" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="hash" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="block_num" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="to_address" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="from_address" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="money" javaType="java.math.BigDecimal" jdbcType="DECIMAL" />
+      <arg column="remark" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="handle_time" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="status" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="type" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="serial_num" javaType="java.lang.Long" jdbcType="BIGINT" />
+      <arg column="from_card_num" javaType="java.lang.String" jdbcType="CHAR" />
+      <arg column="to_card_num" javaType="java.lang.String" jdbcType="CHAR" />
+      <arg column="from_balance" javaType="java.math.BigDecimal" jdbcType="DECIMAL" />
+      <arg column="to_balance" javaType="java.math.BigDecimal" jdbcType="DECIMAL" />
+    </constructor>
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, create_time, update_time, tx_hash, hash, block_num, to_address, from_address, 
+    money, remark, handle_time, status, type, serial_num, from_card_num, to_card_num, 
+    from_balance, to_balance
+  </sql>
+  <select id="selectByExample" parameterType="com.springboot.core.bean.auto.TxRecordBeanExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from tx_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="com.springboot.core.bean.auto.TxRecordBeanExample">
+    delete from tx_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insertSelective" parameterType="com.springboot.core.bean.auto.TxRecordBean">
+    insert into tx_record
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="txHash != null">
+        tx_hash,
+      </if>
+      <if test="hash != null">
+        hash,
+      </if>
+      <if test="blockNum != null">
+        block_num,
+      </if>
+      <if test="toAddress != null">
+        to_address,
+      </if>
+      <if test="fromAddress != null">
+        from_address,
+      </if>
+      <if test="money != null">
+        money,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="handleTime != null">
+        handle_time,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="serialNum != null">
+        serial_num,
+      </if>
+      <if test="fromCardNum != null">
+        from_card_num,
+      </if>
+      <if test="toCardNum != null">
+        to_card_num,
+      </if>
+      <if test="fromBalance != null">
+        from_balance,
+      </if>
+      <if test="toBalance != null">
+        to_balance,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="txHash != null">
+        #{txHash,jdbcType=VARCHAR},
+      </if>
+      <if test="hash != null">
+        #{hash,jdbcType=VARCHAR},
+      </if>
+      <if test="blockNum != null">
+        #{blockNum,jdbcType=INTEGER},
+      </if>
+      <if test="toAddress != null">
+        #{toAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="fromAddress != null">
+        #{fromAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null">
+        #{money,jdbcType=DECIMAL},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="handleTime != null">
+        #{handleTime,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="serialNum != null">
+        #{serialNum,jdbcType=BIGINT},
+      </if>
+      <if test="fromCardNum != null">
+        #{fromCardNum,jdbcType=CHAR},
+      </if>
+      <if test="toCardNum != null">
+        #{toCardNum,jdbcType=CHAR},
+      </if>
+      <if test="fromBalance != null">
+        #{fromBalance,jdbcType=DECIMAL},
+      </if>
+      <if test="toBalance != null">
+        #{toBalance,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.springboot.core.bean.auto.TxRecordBeanExample" resultType="java.lang.Long">
+    select count(*) from tx_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update tx_record
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.txHash != null">
+        tx_hash = #{record.txHash,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hash != null">
+        hash = #{record.hash,jdbcType=VARCHAR},
+      </if>
+      <if test="record.blockNum != null">
+        block_num = #{record.blockNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.toAddress != null">
+        to_address = #{record.toAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fromAddress != null">
+        from_address = #{record.fromAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="record.money != null">
+        money = #{record.money,jdbcType=DECIMAL},
+      </if>
+      <if test="record.remark != null">
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.handleTime != null">
+        handle_time = #{record.handleTime,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null">
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.type != null">
+        type = #{record.type,jdbcType=INTEGER},
+      </if>
+      <if test="record.serialNum != null">
+        serial_num = #{record.serialNum,jdbcType=BIGINT},
+      </if>
+      <if test="record.fromCardNum != null">
+        from_card_num = #{record.fromCardNum,jdbcType=CHAR},
+      </if>
+      <if test="record.toCardNum != null">
+        to_card_num = #{record.toCardNum,jdbcType=CHAR},
+      </if>
+      <if test="record.fromBalance != null">
+        from_balance = #{record.fromBalance,jdbcType=DECIMAL},
+      </if>
+      <if test="record.toBalance != null">
+        to_balance = #{record.toBalance,jdbcType=DECIMAL},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update tx_record
+    set id = #{record.id,jdbcType=BIGINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      tx_hash = #{record.txHash,jdbcType=VARCHAR},
+      hash = #{record.hash,jdbcType=VARCHAR},
+      block_num = #{record.blockNum,jdbcType=INTEGER},
+      to_address = #{record.toAddress,jdbcType=VARCHAR},
+      from_address = #{record.fromAddress,jdbcType=VARCHAR},
+      money = #{record.money,jdbcType=DECIMAL},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      handle_time = #{record.handleTime,jdbcType=INTEGER},
+      status = #{record.status,jdbcType=INTEGER},
+      type = #{record.type,jdbcType=INTEGER},
+      serial_num = #{record.serialNum,jdbcType=BIGINT},
+      from_card_num = #{record.fromCardNum,jdbcType=CHAR},
+      to_card_num = #{record.toCardNum,jdbcType=CHAR},
+      from_balance = #{record.fromBalance,jdbcType=DECIMAL},
+      to_balance = #{record.toBalance,jdbcType=DECIMAL}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.springboot.core.bean.auto.TxRecordBean">
+    update tx_record
+    <set>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="txHash != null">
+        tx_hash = #{txHash,jdbcType=VARCHAR},
+      </if>
+      <if test="hash != null">
+        hash = #{hash,jdbcType=VARCHAR},
+      </if>
+      <if test="blockNum != null">
+        block_num = #{blockNum,jdbcType=INTEGER},
+      </if>
+      <if test="toAddress != null">
+        to_address = #{toAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="fromAddress != null">
+        from_address = #{fromAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null">
+        money = #{money,jdbcType=DECIMAL},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="handleTime != null">
+        handle_time = #{handleTime,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="serialNum != null">
+        serial_num = #{serialNum,jdbcType=BIGINT},
+      </if>
+      <if test="fromCardNum != null">
+        from_card_num = #{fromCardNum,jdbcType=CHAR},
+      </if>
+      <if test="toCardNum != null">
+        to_card_num = #{toCardNum,jdbcType=CHAR},
+      </if>
+      <if test="fromBalance != null">
+        from_balance = #{fromBalance,jdbcType=DECIMAL},
+      </if>
+      <if test="toBalance != null">
+        to_balance = #{toBalance,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

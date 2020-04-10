@@ -12,6 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
  * @author ZhXiQi
  * @Title: feign调用附件服务（微服务客户端配合feign使用（ribbon同理））
  * controller层安装常规的写法书写，并调用此层来进行 feign 调用
+ * feignClient中的 path 参数为统一请求前缀
+ * 定义一个feign接口，通过@ FeignClient（“服务名”），来指定调用哪个服务。比如在代码中调用了service-hi服务的“/hi”接口，@FeignClient 只能用于接口
+ * name(value)为服务提供者向注册中心注册的实例名
  * @date 2019/8/27 19:48
  */
 @FeignClient(value = "attachment", path = "/v1/attachment", configuration = FeignConfig.class, fallback = AttachServerFallback.class)

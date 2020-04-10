@@ -28,6 +28,12 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 @SpringCloudApplication
 public class SpringCloudEurekaService {
     public static void main(String[] args) {
+        //设置属性
+//        System.setProperty("spring.devtools.restart.enabled", "false");
+//        System.setProperty("spring.devtools.add-properties", "false");
+//        System.setProperty("spring.devtools.restart.log-condition-evaluation-delta", "false");
+//        System.setProperty("logging.level.org.springframework.boot.autoconfigure", "info");
+
         /**
          * 在main方法中启动应用程序
          */

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>learning</groupId>
+        <artifactId>SpringCloud</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>databases</artifactId>
+    <name>database</name>
+    <description>database Core project for Spring Boot</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter
+            mybatis插入主键映射，需要高版本mybatis要求
+        -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <version>2.1.1.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>6.0.6</version>
+        </dependency>
+        <!--fastjson-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.61</version>
+        </dependency>
+        <!--    MySQL映射JavaBean LocalDateTime 需要Druid高版本要求，LocalDateTime的好处在于 Date 有的它都有，Date没有的它也有，且输出格式更加具有可读性，
+                且SimpleDateFormat不具有线程安全性
+         -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.20</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>2.1.3.RELEASE</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-pool2 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+
+        <!--<dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+        </dependency>-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.20</version>
+        </dependency>
+        <!-- 使mybatis支持jsr310规则，支持LocalDateTime -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-typehandlers-jsr310</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-maven-plugin</artifactId>
+                <version>1.3.7</version>
+                <dependencies>
+                    <!-- mybatis-generate连接mysql需要 -->
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>5.1.38</version>
+                    </dependency>
+                    <!-- mybatis-generate连接Oracle需要 -->
+                    <!--<dependency>
+                        <groupId>com.oracle</groupId>
+                        <artifactId>ojdbc7</artifactId>
+                        <version>12.2.0.1.0</version>
+                    </dependency>-->
+                </dependencies>
+                <configuration>
+                    <!--配置文件的路径-->
+                    <configurationFile>${basedir}/src/main/resources/generatorConfig.xml</configurationFile>
+                    <overwrite>true</overwrite>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

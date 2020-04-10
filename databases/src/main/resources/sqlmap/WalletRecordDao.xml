@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.core.dao.WalletRecordDao">
+
+
+    <select id="selectWalletUnusualList" resultType="com.springboot.core.model.WalletUnusualVo">
+        SELECT
+        w.id as walletId,w.user_id,w.wallet_num,w.wallet_type,w.balance,w.org_name,w.bank_name,w.address,
+        wr.create_time,wr.op_name,wr.remark,a.url
+        FROM wallet w
+        LEFT JOIN wallet_record wr ON wr.wallet_id = w.id
+        LEFT JOIN attachment a ON a.relate_id = wr.id AND a.attach_type = wr.op_status and a.op_type = #{opType}
+        <where>
+            <if test="status != null">
+                w.wallet_status = #{status}
+            </if>
+            <if test="userId != null">
+                AND w.user_id = #{userId}
+            </if>
+        </where>
+        ORDER BY wr.create_time DESC
+        LIMIT #{offset},#{pageSize}
+    </select>
+
+    <insert id="insertReturnId" parameterType="com.springboot.core.bean.auto.WalletRecordBean" useGeneratedKeys="true" keyProperty="id">
+        insert into wallet_record (id, create_time,
+        update_time, wallet_id,
+        op_name, op_status,
+        remark)
+        values (#{id,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{walletId,jdbcType=BIGINT},
+        #{opName,jdbcType=VARCHAR}, #{opStatus,jdbcType=TINYINT},
+        #{remark,jdbcType=VARCHAR})
+    </insert>
+
+</mapper>
