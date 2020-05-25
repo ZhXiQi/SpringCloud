@@ -1,6 +1,0 @@
-2020-05-21 20:01:33.754 [main] WARN  com.netflix.config.sources.URLConfigurationSource(121)  - No URLs will be polled as dynamic configuration sources.
-2020-05-21 20:01:33.766 [main] WARN  com.netflix.config.sources.URLConfigurationSource(121)  - No URLs will be polled as dynamic configuration sources.
-2020-05-21 20:01:37.495 [Thread-6] WARN  c.n.d.s.t.decorator.RetryableEurekaHttpClient(130)  - Request execution failed with message: java.net.ConnectException: Connection refused (Connection refused)
-2020-05-21 20:01:37.497 [Thread-6] WARN  com.netflix.discovery.DiscoveryClient(290)  - Using default backup registry implementation which does not do anything.
-2020-05-21 20:01:40.523 [Thread-6] WARN  c.n.d.s.t.decorator.RetryableEurekaHttpClient(130)  - Request execution failed with message: java.net.ConnectException: Connection refused (Connection refused)
-2020-05-21 20:01:40.562 [Thread-6] WARN  com.netflix.config.sources.URLConfigurationSource(121)  - No URLs will be polled as dynamic configuration sources.
