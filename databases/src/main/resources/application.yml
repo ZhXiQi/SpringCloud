@@ -58,3 +58,8 @@ spring:
       remove-abandoned-timeout-millis: 1800
       #输出日志
       log-abandoned: true
+
+logging:
+  level:
+    cn.hyperchain.ccb.core.dao: debug
+    cn.hyperchain.ccb.wallet.core.dao: debug

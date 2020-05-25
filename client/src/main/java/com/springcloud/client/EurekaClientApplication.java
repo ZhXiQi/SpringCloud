@@ -2,6 +2,9 @@ package com.springcloud.client;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.ServletContextInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
@@ -14,6 +17,13 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  *
  * 注解 @EnableEurekaClient 表明自己是一个 eurekaClient
  * 使用feign，需要开启feign功能
+ *
+ * extends SpringBootServletInitializer
+ *
+ * @Override
+ *     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+ *         return builder.sources(EurekaClientApplication.class);
+ *     }
  */
 @EnableHystrix
 @EnableFeignClients
