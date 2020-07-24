@@ -61,7 +61,7 @@
     </select>
 
 
-    <select id="countAndSumByUserId" parameterType="java.lang.Long" resultType="com.springboot.core.model.HomeWalletVo">
+    <select id="countAndSumByUserId" parameterType="java.lang.Long" resultType="java.util.HashMap">
         SELECT count(*) as walletCount , sum(balance) as walletTotalBalance FROM wallet WHERE user_id = #{userId}
     </select>
 

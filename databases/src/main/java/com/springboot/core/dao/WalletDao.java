@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author ZhXiQi
@@ -37,14 +38,14 @@ public interface WalletDao extends WalletBeanMapper {
      * @param userId
      * @return
      */
-    HomeWalletVo countAndSumByUserId(@Param("userId") long userId);
+    Map<String,Long> countAndSumByUserId(@Param("userId") long userId);
 
     /**
      * 根据address获取贸易往来商户列表
      * @param address
      * @return
      */
-    List<OrgVo> getHistoryOrg(String address);
+    List<Object> getHistoryOrg(String address);
 
     /**
      * 多条件求钱包余额总和

@@ -16,6 +16,8 @@
         <module>zuul</module>
         <module>config</module>
         <module>databases</module>
+        <module>algorithm</module>
+        <module>database-hibernate</module>
     </modules>
 
     <name>springcloud-parent</name>

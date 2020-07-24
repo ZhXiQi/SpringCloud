@@ -20,7 +20,7 @@ public interface OrganizationDao extends OrganizationBeanMapper {
      * @param address
      * @return
      */
-    List<OrgVo> getHistoryOrg(@Param("address") String address);
+    List<Object> getHistoryOrg(@Param("address") String address);
 
     /**
      * 查询注册的商户信息
