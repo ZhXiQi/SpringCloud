@@ -3,13 +3,15 @@ package solution;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.BlockingDeque;
+
 
 /**
  * @author ZhXiQi
@@ -589,7 +591,9 @@ public class Solution {
         int min = prices[0];
         for (int i=1;i<length;++i) {
             int price = prices[i];
+            //记录历史最低价
             if (price<min) min = price;
+            //取 前i日最大利润和当前价-历史最低价 的最大值
             dp[i] = Math.max(dp[i-1],prices[i]-min);
         }
         return dp[length-1];
@@ -653,19 +657,409 @@ public class Solution {
         }
     }
 
+    /**
+     * 栈的压入、弹出序列
+     * 判断合不合法，用个栈试一试:
+     *      把压栈的元素按顺序压入，当栈顶元素和出栈的第一个元素相同，则将该元素弹出，出栈列表指针后移并继续判断。
+     *      最后判断栈是否已空即可。
+     * @param pushed
+     * @param popped
+     * @return
+     */
+    public boolean validateStackSequences(int[] pushed, int[] popped) {
+        if (pushed==null || popped==null || pushed.length==0 || popped.length==0) return true;
+        Deque<Integer> stack = new ArrayDeque<>();
+        int num = 0;
+        int length = popped.length;
+        for (int i:pushed){
+            stack.push(i);
+            while (num<length && !stack.isEmpty() && (stack.peek() == popped[num])) {
+                stack.pop();
+                ++num;
+            }
+        }
+        return stack.isEmpty();
+    }
+
+    /**
+     * 从上到下打印二叉树 二
+     * 按照之字型打印
+     * @param root
+     * @return
+     */
+    public List<List<Integer>> levelOrder2(TreeNode root) {
+        Deque<TreeNode> deque = new ArrayDeque<>();
+        List<List<Integer>> result = new ArrayList<>();
+        if (root != null) deque.add(root);
+        while (!deque.isEmpty()) {
+            LinkedList<Integer> tmp = new LinkedList<>();
+            //直接遍历当前队列里的所有元素，此时的值即为某层的元素个数
+            for (int l=deque.size();l>0;l--) {
+                TreeNode poll = deque.poll();
+                //结果集的外层list的size即为层数，根据层数判断输出方式，偶数层
+                if (result.size()%2==0) tmp.addLast(poll.val);
+                //奇数层
+                else tmp.addFirst(poll.val);
+                if (poll.left!=null) deque.add(poll.left);
+                if (poll.right!=null) deque.add(poll.right);
+            }
+            result.add(tmp);
+        }
+        return result;
+    }
+
+    /**
+     * 二叉树中，和为某一值的路径
+     * DFS，回溯
+     * @param root
+     * @param sum
+     * @return
+     */
+    private List<List<Integer>> result = new ArrayList<>();
+    public List<List<Integer>> pathSum(TreeNode root, int sum) {
+        dfs(root,sum,new LinkedList<>());
+        return result;
+    }
+
+    public void dfs(TreeNode root, int sum, LinkedList<Integer> linkedList){
+        if (root==null) return;
+        //把经过的数据放到列表里
+        linkedList.add(root.val);
+        int target = sum - root.val;
+        //当目标值为0，且root为叶子节点，则找到一个符合条件的路径
+        if (target==0 && root.left==null && root.right==null) result.add(new LinkedList<>(linkedList));
+        dfs(root.left,target,linkedList);
+        dfs(root.right,target,linkedList);
+        //回溯时删除当前节点数据
+        linkedList.removeLast();
+    }
+
+    /**
+     * 把数组排成最小的数
+     * @param nums
+     * @return
+     */
+    public String minNumber(int[] nums) {
+        if (nums==null || nums.length==0) return "";
+        int length = nums.length;
+        String[] numsStr = new String[length];
+        for (int i=0;i<length;++i) {
+            numsStr[i] = String.valueOf(nums[i]);
+        }
+        Arrays.sort(numsStr,(x,y)->(x+y).compareTo(y+x));
+        StringBuilder sb = new StringBuilder();
+        for (String s:numsStr) {
+            sb.append(s);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 字符串排列
+     * 回溯
+     * @param s
+     * @return
+     */
+    List<String> permutation = new LinkedList<>();
+    public String[] permutation(String s) {
+        if (s==null || s.trim().length()==0) return new String[0];
+        char[] chars = s.toCharArray();
+        int length = chars.length;
+        permutation(chars,0,length);
+        return permutation.toArray(new String[permutation.size()]);
+    }
+    public void permutation(char[] chars, int index, int len) {
+        if (index == len-1) {
+            //完成回溯
+            permutation.add(String.valueOf(chars));
+            return;
+        }
+        Set<Character> set = new HashSet<>();
+        for (int i=index;i<len;++i) {
+            if (set.contains(chars[i])) continue;
+            set.add(chars[i]);
+            swap(chars,i,index);
+            permutation(chars,index+1,len);
+            //回溯
+            swap(chars,i,index);
+        }
+    }
+    public void swap(char[] chars,int i,int j) {
+        char tmp = chars[i];
+        chars[i] = chars[j];
+        chars[j] = tmp;
+    }
+
+    /**
+     * 把数字翻译成字符串
+     * 回溯和dp皆可，类似青蛙跳台，一次一个或两个
+     * @param num
+     * @return
+     */
+    int count = 0;
+    public int translateNum(int num) {
+        /*
+        //递归
+        if (num<10) return 1;
+        int twoValue = num % 100;
+        //只能一个一个来
+        if (twoValue>25 || twoValue<10) return translateNum(num/10);
+        //可以有一个或两个组合的情况
+        else return translateNum(num/10) + translateNum(num/100);
+        */
+        /*
+        //非递归
+        int result = 1,single = 1;
+        while (num!=0) {
+            int twoValue = num % 100;
+            //保存当前可能的结果数
+            int tmp = result;
+            //既可以两个，也可以一个，两种可能
+            if (twoValue<=25 && twoValue>=10) result += single;
+            //只有一种选择时可能的结果数
+            single = tmp;
+            num = num/10;
+        }
+        return result;
+        */
+
+        //回溯
+        String s = String.valueOf(num);
+        translateNum(s,0,s.length());
+        return count;
+    }
+
+    /**
+     * 回溯法
+     * @param s
+     * @param index
+     * @param len
+     */
+    public void translateNum(String s,int index,int len) {
+        if (index == len) {
+            ++count;
+            return;
+        }
+        if (index+2<=len) {
+            Integer twoValue = Integer.valueOf(s.substring(index, index + 2));
+            if (twoValue<=25 && twoValue>=10) {
+                translateNum(s,index+2,len);
+            }
+        }
+        translateNum(s,index+1,len);
+    }
+
+    /**
+     * 二叉搜索树的后序遍历序列
+     * 二叉搜索树，左子树小于根节点，右子树大于根节点
+     * @param postorder
+     * @return
+     */
+    public boolean verifyPostorder(int[] postorder) {
+        int length = postorder.length;
+        return verifyPostorder(postorder,0,length-1);
+    }
+    public boolean verifyPostorder(int[] postorder, int i, int j) {
+        if (i>=j) return true;
+        int pivot = i;
+        //左子树小于根节点
+        while(postorder[pivot] < postorder[j]) ++pivot;
+        //新的根节点
+        int m = pivot;
+        //右子树大于根节点
+        while(postorder[pivot] > postorder[j]) ++pivot;
+        //最后计算出来的根节点下标pivot是否等于后序遍历的根节点j，并且左右子树是否也满足这个条件
+        return pivot==j && verifyPostorder(postorder,i,m-1) && verifyPostorder(postorder,m,j-1);
+    }
+
+    /**
+     * 机器人的运动范围
+     * @param m
+     * @param n
+     * @param k
+     * @return
+     */
+    public int movingCount(int m, int n, int k) {
+        if (m==0 || n==0) return 0;
+        if(k==0) return 1;
+        boolean[][] isVistied = new boolean[m][n];
+        // return dfs4MovingCount(0,0,isVistied,m,n,k);
+        return bfs4MovingCount(isVistied,m,n,k);
+    }
+    public int dfs4MovingCount(int x, int y, boolean[][] isVisited, int m, int n,int k){
+        if (x>m-1 || y>n-1 || isVisited[x][y] || (getSum(x)+getSum(y))>k) return 0;
+        isVisited[x][y] = true;
+        return 1+dfs4MovingCount(x+1,y,isVisited,m,n,k) + dfs4MovingCount(x,y+1,isVisited,m,n,k);
+
+    }
+    public int bfs4MovingCount(boolean[][] isVisited, int m, int n,int k){
+        Queue<int[]> queue = new LinkedList<>();
+        queue.add(new int[]{0,0});
+        int res = 0;
+        while (!queue.isEmpty()){
+            int[] node = queue.poll();
+            int x = node[0];
+            int y = node[1];
+            if (x>m-1 || y>n-1 || isVisited[x][y] || (getSum(x)+getSum(y))>k) continue;
+            isVisited[x][y] = true;
+            res++;
+            queue.add(new int[]{x+1,y});
+            queue.add(new int[]{x,y+1});
+        }
+        return res;
+    }
+    public int getSum(int x){
+        int tmp = x;
+        int sum = 0;
+        do {
+            sum += tmp%10;
+        }while ((tmp=tmp/10)!=0);
+        return sum;
+    }
+
+    /**
+     * 最长不含重复字符的子字符串
+     * 双指针、滑动窗口、哈希表
+     * @param s
+     * @return
+     */
+    public int lengthOfLongestSubstring(String s) {
+        if (s==null) return 0;
+        int len = s.length();
+        int result = 0;
+        /*
+        //双指针（滑动窗口）法
+        Set<Character> set = new HashSet<>();
+        for(int l=0,r=0;r<len;++r) {
+            char c = s.charAt(r);
+            while(set.contains(c)) {
+                //缩小滑动窗口左边边界
+                set.remove(s.charAt(l));
+                ++l;
+            }
+            set.add(c);
+            result = Math.max(result,r-l+1);
+        }
+        return result;
+        */
+        return 0;
+    }
+
+    /**
+     * 字符串转整数
+     * @param str
+     * @return
+     */
+    public int strToInt(String str) {
+        str = str.trim();
+        char[] tchar = str.toCharArray();
+        int len = tchar.length;
+        long result = 0;
+        boolean positive = true;
+
+        switch (tchar[0]) {
+            case '+':
+                positive = true;
+                break;
+            case '-':
+                positive = false;
+                result = -result;
+                break;
+            default:
+                result = tchar[0] - '0';
+        }
+        for(int i=1;i<len;++i) {
+            int c = tchar[i] - '0';
+            if(0 <= c && 9 >= c) {
+                result = result*10 + c;
+                if (positive && result >= Integer.MIN_VALUE) return Integer.MAX_VALUE;
+                else if (-result <= Integer.MIN_VALUE) return Integer.MIN_VALUE;
+            } else {
+                break;
+            }
+        }
+        if (positive) return (int) result;
+        else return (int) -result;
+    }
+
+    /**
+     * 1～n中整数n的1出现的次数
+     * 将 n 分为  high、cur、low 三种位，digit = 10^i 位因子
+     * cur = 0时，result 由高位决定，即 result = high * digit（此时digit为10）
+     * cur = 1时，result 由高位high和低位low决定，即 result = high * digit + low + 1
+     * cur > 1时，result 由高位high决定，即 result = (high + 1) * digit
+     * @param n
+     * @return
+     */
+    public int countDigitOne(int n) {
+        int count = 0;
+        int high = n/10,cur = n%10,digit = 1,low = 0;
+        while (high!=0 || cur!=0) {
+            if (cur==0) count = count + high * digit;
+            else if (cur==1) count = count + high * digit + low + 1;
+            else count = count + (high+1) * digit;
+            low = low + cur * digit;
+            digit = digit * 10;
+            cur = high%10;
+            high = high/10;
+        }
+        return count;
+    }
+
+    //下面我们都用 1234 和 2345 来举例
+    private int f(int n){
+        // 上一级递归 n = 20、10之类的整十整百之类的情况；以及n=0的情况
+        if(n== 0) return 0;
+        // n < 10 即为个位，这样子只有一个1
+        if(n < 10) return 1;
+
+        String s = String.valueOf(n);
+        //长度：按例子来说是4位
+        int length = s.length();
+
+        //这个base是解题速度100%的关键，本例中的是999中1的个数：300
+        // 99的话就是20 ; 9的话就是1 ；9999就是4000 这里大家应该发现规律了吧。
+        int base = (length-1)*(int)Math.pow(10,length-2);
+
+        //high就是最高位的数字
+        int high = s.charAt(0) - '0';
+        //cur就是当前所数量级，即1000
+        int cur = (int)Math.pow(10,length -1);
+        if(high == 1){
+            //最高位为1，1+n-cur就是1000~1234中由千位数提供的1的个数，剩下的f函数就是求1000~1234中由234产生的1的个数
+            return base + 1 + n - cur + f(n - high * cur);
+        }else{
+            //这个自己思考
+            return base * high + cur + f(n- high * cur);
+        }
+    }
 
 
     public static void main(String[] args) {
         Solution solution = new Solution();
-        int i = solution.lastRemaining(5, 3);
+
+        int i = solution.strToInt("91283472332");
         System.out.println(i);
+//        int abcabcbb = solution.lengthOfLongestSubstring("abcabcbb");
+//        System.out.println(abcabcbb);
+//
+//        solution.verifyPostorder(new int[]{1, 3, 2, 6, 5});
+//
+//        int translateNum = solution.translateNum(12228);
+//        System.out.println(translateNum);
+//
+//        String[] abcs = solution.permutation("abc");
+//        System.out.println(Arrays.toString(abcs));
+//
+//        int i = solution.lastRemaining(5, 3);
+//        System.out.println(i);
 
         List<Integer> testSt = new ArrayList<Integer>(){{add(1);}};
         Integer[] strings = testSt.toArray(new Integer[10]);
 
-//        int[] nums = {-2,1,-3,4,-1,2,1,-5,4};
-//        int maxSubArray = solution.maxSubArray(nums);
-//        System.out.println(maxSubArray);
+        int[] nums = {-2,1,-3,4,-1,2,1,-5,4};
+        int maxSubArray = solution.maxSubArray(nums);
+        System.out.println(maxSubArray);
 //        solution.isStraight(new int[]{0,11,3,13,7});
 //        solution.maxSlidingWindow(new int[]{1,-1},1);
 //        solution.reverseWords("the sky      is blue");

@@ -12,12 +12,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.GeoOperations;
 import org.springframework.data.redis.core.HyperLogLogOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -92,7 +95,7 @@ public class RedisDistributedLockTest {
 
         TimeUnit.SECONDS.sleep(1);
 
-        List<List<List<List<String>>>> lists = new ArrayList<>();
+        /*List<List<List<List<String>>>> lists = new ArrayList<>();
         List<String> latestList = new ArrayList<>();
         latestList.add("1");
         latestList.add("2");
@@ -106,7 +109,7 @@ public class RedisDistributedLockTest {
 
         lists.add(twoList);
 
-        keyValueCacheService.set("test",lists);
+        keyValueCacheService.set("test",lists);*/
 //        listCacheService.lpushAll("test", Collections.singletonList(lists));
 //        listCacheService.lpush("test",lists);
 
@@ -126,41 +129,47 @@ public class RedisDistributedLockTest {
     }
 
     @Test
-    public void test4HyperLogLog(){
+    public void test4HyperLogLog() throws InterruptedException {
         HyperLogLogOperations hyperLogLog = redisTemplate.opsForHyperLogLog();
 
         String hyperLogLogOne = "hyperLogLogOne";
         String hyperLogLogTwo = "hyperLogLogTwo";
+        redisTemplate.opsForHyperLogLog().delete(hyperLogLogOne);
+        redisTemplate.opsForHyperLogLog().delete(hyperLogLogTwo);
+
         new Thread(() -> {
             for (int i=0;i<1000;++i){
-                hyperLogLog.add(hyperLogLogOne,"user"+i);
+                Long add = hyperLogLog.add(hyperLogLogOne, "user2" + i);
                 Long count = hyperLogLog.size(hyperLogLogOne);
-                if (count != i+1){
-                    System.out.printf("%d %d\n",count,i+1);
-                    break;
-                }
+//                System.out.println(count);
+//                if (count != i+1){
+//                    System.out.printf("%d %d\n",count,i+1);
+//                    break;
+//                }
             }
         }).start();
 
         new Thread(() -> {
             for (int i=0;i<1000;++i){
-                hyperLogLog.add(hyperLogLogTwo,"user"+i);
+                hyperLogLog.add(hyperLogLogTwo,"user2"+i);
                 Long count = hyperLogLog.size(hyperLogLogTwo);
-                if (count != i+1){
-                    System.out.printf("%d %d\n",count,i+1);
-                    break;
-                }
+//                System.out.println(count);
+//                if (count != i+1){
+//                    System.out.printf("%d %d\n",count,i+1);
+//                    break;
+//                }
             }
         }).start();
 
+        TimeUnit.SECONDS.sleep(2);
         Long hyperLogLogOneSize = hyperLogLog.size(hyperLogLogOne);
         Long hyperLogLogTwoSize = hyperLogLog.size(hyperLogLogTwo);
 
-        Long union = hyperLogLog.union(hyperLogLogOne, hyperLogLogTwo);
+//        Long union = hyperLogLog.union(hyperLogLogOne, hyperLogLogTwo);
 
         System.out.printf("%s:%d\n",hyperLogLogOne,hyperLogLogOneSize);
         System.out.printf("%s:%d\n",hyperLogLogTwo,hyperLogLogTwoSize);
-        System.out.printf("%s:%d\n","union",union);
+//        System.out.printf("%s:%d\n","union",union);
 
     }
 
@@ -222,7 +231,7 @@ public class RedisDistributedLockTest {
 
         long cursorId;
         Cursor<byte[]> execute = (Cursor<byte[]>) redisTemplate.execute((RedisCallback) connection -> {
-            Cursor<byte[]> scan = connection.scan(ScanOptions.scanOptions().match("k*").count(1).build());
+            Cursor<byte[]> scan = connection.scan(ScanOptions.scanOptions().match("user*").count(1).build());
 
             System.out.println(scan.getCursorId());
             System.out.println(scan.getPosition());
@@ -239,7 +248,7 @@ public class RedisDistributedLockTest {
             //零取
             Boolean bit = connection.getBit("bit".getBytes(), 0l);
             System.out.println(bit);
-            //整存
+            //整存 a 91
             connection.set("bitSet".getBytes(), "test".getBytes());
             //整取
             byte[] bytes = connection.get("bitSet".getBytes());
@@ -291,7 +300,22 @@ public class RedisDistributedLockTest {
     @Test
     public void test4Geo() {
 
-        redisTemplate.opsForGeo().add("hz",new Point(123.21,123.312),1);
+        GeoOperations geoOperations = redisTemplate.opsForGeo();
+        geoOperations.add("home",new Point(120.15,30.28),"hz");
+        geoOperations.add("home",new Point(117.62,26.27),"sm");
+        Distance distance = geoOperations.distance("home", "hz", "sm");
+        System.out.println(distance.getValue());
+        System.out.println(distance.getMetric());
+        System.out.println(distance.getUnit());
+
+        List position = geoOperations.position("home", "hz", "sm");
+        System.out.println(position.toString());
+
+        List hash = geoOperations.hash("home", "hz", "sm");
+        System.out.println(hash.toString());
+
+        GeoResults radius = geoOperations.radius("home", "hz", 10000000);
+        System.out.println(radius.getContent().toString());
 
     }
 
@@ -339,6 +363,7 @@ public class RedisDistributedLockTest {
 
     @Test
     public void test4set(){
+        redisTemplate.opsForZSet().add("key","value",10);
         for (int i=0;i<1000;++i){
             redisTemplate.opsForValue().set("key"+i,"value"+i);
         }

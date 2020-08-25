@@ -1,14 +1,13 @@
 package com.springcloud.client;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.servlet.ServletContextInitializer;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cloud.client.SpringCloudApplication;
-import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * @author ZhXiQi
@@ -33,6 +32,27 @@ public class EurekaClientApplication {
     public static void main(String[] args) {
         System.setProperty("logging.level.org.springframework.boot.autoconfigure", "info");
         SpringApplication.run(EurekaClientApplication.class,args);
+    }
+
+    public void loadBean() {
+        //通过xml(classpath下)配置文件加载bean
+        ApplicationContext contextWithXml = new ClassPathXmlApplicationContext("XML configLocation");
+        //通过xml文件加载bean
+        ApplicationContext contextWithFile = new FileSystemXmlApplicationContext("xml file configLocation");
+        /**
+         * 通过注解方式加载bean，有四个构造器：
+         * 1.无参
+         * 2.包路径 ...basePackages
+         * 3.类名 ...annotatedClasses
+         * 4.bean工厂 beanFactory
+         *
+         */
+        ApplicationContext contextWithAnnotation = new AnnotationConfigApplicationContext();
+
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        //对加入的 bean 进行更名
+//        context.registerBean();
+
     }
 
 }

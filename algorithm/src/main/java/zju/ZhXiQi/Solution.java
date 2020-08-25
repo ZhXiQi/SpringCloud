@@ -1219,6 +1219,7 @@ public class Solution {
             multi *= 3;
             n=n-3;
         }
+        //最后剩下的如果长度为1，则将一个3和这个1 换成 2*2 乘积更大
         if (n==1) multi = (multi/3)*4;
         if (n==2) multi = multi*2;
         return multi;

@@ -11,6 +11,9 @@
 
     <artifactId>client</artifactId>
 
+    <properties>
+        <powermock.version>2.0.7</powermock.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -69,6 +72,20 @@
 <!--            <artifactId>junit</artifactId>-->
 <!--            <scope>test</scope>-->
 <!--        </dependency>-->
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito2 -->
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>
