@@ -61,5 +61,5 @@ spring:
 
 logging:
   level:
-    cn.hyperchain.ccb.core.dao: debug
-    cn.hyperchain.ccb.wallet.core.dao: debug
+    cn.xxx.core.dao: debug
+    cn.xxx.wallet.core.dao: debug

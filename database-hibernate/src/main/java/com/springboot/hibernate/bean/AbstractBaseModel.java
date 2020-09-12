@@ -8,11 +8,7 @@ import javax.persistence.Version;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * @Author: marveliu email:liushangnan@hyperchian.cn
- * @Date: 2018/7/5 2:47 PM
- * @Description:
- */
+
 @MappedSuperclass
 public abstract class AbstractBaseModel<ID extends Serializable> {
 

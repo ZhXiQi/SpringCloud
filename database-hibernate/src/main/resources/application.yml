@@ -22,8 +22,8 @@ spring:
     filters: stat,wall,log4j
     # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
     connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    url: jdbc:mysql://127.0.0.1:3306/pboc?characterEncoding=utf-8&useSSL=false
-    #    建表语句 CREATE DATABASE pboc_polling_local CHARACTER SET utf8 COLLATE utf8_general_ci
+    url: jdbc:mysql://127.0.0.1:3306/test?characterEncoding=utf-8&useSSL=false
+    #    建表语句 CREATE DATABASE local CHARACTER SET utf8 COLLATE utf8_general_ci
     username: root
     password: root
   jpa:

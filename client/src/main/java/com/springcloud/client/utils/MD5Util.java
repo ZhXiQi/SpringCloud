@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.security.MessageDigest;
 
-/**
- * @author: kiyonami email: yuqingbo@hyperchain.cn
- * @date: 2018/6/20 上午11:24
- **/
+
 @Slf4j
 public class MD5Util {
 

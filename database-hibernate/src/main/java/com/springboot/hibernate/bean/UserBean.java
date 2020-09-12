@@ -90,12 +90,12 @@ public class UserBean extends AbstractBaseModel<Integer> {
 
     @Column(columnDefinition = "int(11) " +
             "DEFAULT '0' " +
-            "COMMENT '巡检总时长'")
+            "COMMENT '总时长'")
     private Integer pollingTime;
 
     @Column(columnDefinition = "int(11) " +
             "DEFAULT '0' " +
-            "COMMENT '巡检总次数'")
+            "COMMENT '总次数'")
     private Integer pollingNum;
 
     @Column(columnDefinition = "int(11) " +

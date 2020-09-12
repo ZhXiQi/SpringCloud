@@ -7,10 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * @author: kiyonami email: yuqingbo@hyperchain.cn
- * @date: 2018/7/2 下午3:51
- **/
+
 @Repository
 public interface UserJpaRepository extends BaseDao<UserBean, Integer> {
 
