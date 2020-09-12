@@ -1034,12 +1034,97 @@ public class Solution {
         }
     }
 
+    /**
+     * 组合总和
+     * @param candidates
+     * @param target
+     * @return
+     */
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        int len = candidates.length;
+        List<Integer> tmp = new ArrayList<>();
+        combinationSum(candidates,target,0,len,tmp);
+        return result;
+    }
+    public void combinationSum(int[] candidates, int target, int index, int len, List<Integer> tmp) {
+        if (index>=len) {
+            return;
+        }
+        if (0==target) {
+            result.add(new ArrayList<Integer>(tmp));
+            return;
+        }
+        combinationSum(candidates,target,index+1,len,tmp);
+        if(target - candidates[index] >= 0) {
+            tmp.add(candidates[index]);
+            combinationSum(candidates,target-candidates[index],index,len,tmp);
+            tmp.remove(tmp.size()-1);
+        }
+    }
+
+    /**
+     * 组合总和二
+     * @param candidates
+     * @param target
+     * @return
+     */
+    public List<List<Integer>> combinationSum2(int[] candidates,int target) {
+        int length = candidates.length;
+        if (length==0) return result;
+        Arrays.sort(candidates);
+        Deque<Integer> path = new ArrayDeque<>(length);
+        combinationSum2(candidates,target,0,path,length);
+        return result;
+    }
+    public void combinationSum2(int[] candidates, int target, int index, Deque<Integer> path,int len) {
+        if (target == 0) {
+            result.add(new ArrayList<>(path));
+            return;
+        }
+        for (int i=index;i<len;++i) {
+            //大剪枝
+            if (candidates[i]>target) break;
+            //小剪枝
+            if (i>index && candidates[i] == candidates[i-1]) continue;
+            path.addLast(candidates[i]);
+            combinationSum2(candidates,target-candidates[i],i+1,path,len);
+            path.removeLast();
+        }
+    }
+
+    /**
+     * 二叉树的层平均值
+     * @param root
+     * @return
+     */
+    public List<Double> averageOfLevels(TreeNode root) {
+        List<Double> result = new ArrayList<>();
+        if (root==null) return result;
+        Queue<TreeNode> queue = new ArrayDeque<>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            double v = 0d;
+            int size = queue.size();
+            for (int i=0;i<size;i++) {
+                TreeNode poll = queue.poll();
+                if (poll.left!=null) queue.add(poll.left);
+                if (poll.right!=null) queue.add(poll.right);
+                v = v + poll.val;
+            }
+            result.add(v/size);
+        }
+        return result;
+    }
+
 
     public static void main(String[] args) {
         Solution solution = new Solution();
 
+        solution.combinationSum(new int[]{2,3,6,7},7);
         int i = solution.strToInt("91283472332");
         System.out.println(i);
+        Map<Integer,Integer> hashmap = new HashMap<>();
+
 //        int abcabcbb = solution.lengthOfLongestSubstring("abcabcbb");
 //        System.out.println(abcabcbb);
 //

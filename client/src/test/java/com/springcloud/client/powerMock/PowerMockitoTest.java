@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 /**
  * @author ZhXiQi
@@ -38,6 +39,7 @@ public class PowerMockitoTest {
         Whitebox.setInternalState(user,"fieldName",object); //注入依赖对象
         */
         MockitoAnnotations.initMocks(this);
+//        Whitebox.setInternalState();
 //        PowerMockito.mockStatic();
     }
 }

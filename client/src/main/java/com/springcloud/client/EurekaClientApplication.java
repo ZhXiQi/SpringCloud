@@ -1,11 +1,14 @@
 package com.springcloud.client;
 
+import org.springframework.aop.framework.AopContext;
 import org.springframework.boot.SpringApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -23,10 +26,15 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  *     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
  *         return builder.sources(EurekaClientApplication.class);
  *     }
+ *
+ * @EnableAspectJAutoProxy 使用 AopContext 需要此注解支持
+ * @EnableCaching 开启缓存支持
  */
+@EnableCaching
 @EnableHystrix
 @EnableFeignClients
 @SpringCloudApplication
+@EnableAspectJAutoProxy(exposeProxy = true)
 public class EurekaClientApplication {
 
     public static void main(String[] args) {
@@ -35,6 +43,9 @@ public class EurekaClientApplication {
     }
 
     public void loadBean() {
+
+        //获取当前对象的 spring proxy 对象，即bean
+        EurekaClientApplication o = (EurekaClientApplication) AopContext.currentProxy();
         //通过xml(classpath下)配置文件加载bean
         ApplicationContext contextWithXml = new ClassPathXmlApplicationContext("XML configLocation");
         //通过xml文件加载bean
