@@ -258,6 +258,11 @@ public class Solution {
       TreeNode(int x) { val = x; }
     }
 
+    /**
+     * 翻转二叉树
+     * @param root
+     * @return
+     */
     public TreeNode invertTree(TreeNode root) {
         TreeNode tmp;
         tmp = root.left;
@@ -1106,8 +1111,8 @@ public class Solution {
 
     /**
      * 重建二叉树
-     * @param preorder
-     * @param inorder
+     * @param preorder 前序
+     * @param inorder 中序
      * @return
      */
     public TreeNode buildTree(int[] preorder, int[] inorder) {
@@ -1149,14 +1154,67 @@ public class Solution {
             int leftNodes = rootIndex - inorderStartIndex;
             //右子树个数
             int rightNodes = inorderEndIndex - rootIndex;
-            //重点
+            //重点    左子树                                             前序开始下标 + 1                      前序结束下标 - 右节点个数
             TreeNode leftSubTree = buildTree(preorder,preorderStartIndex+1,preorderEndIndex-rightNodes,
+                    //          中序开始下标              根节点下标 - 1
                     inorder,inorderStartIndex,rootIndex-1,indexMap);
+            //      右子树                                                 前序结束下标 - 右子树 + 1        前序结束下标
             TreeNode rightSubTree = buildTree(preorder,preorderEndIndex-rightNodes+1,preorderEndIndex,
+                    //              根节点下标 + 1       中序结束下标
                     inorder,rootIndex+1,inorderEndIndex,indexMap);
             root.left = leftSubTree;
             root.right = rightSubTree;
             return root;
+        }
+    }
+
+    class buildTree {
+        /**
+         * 重建二叉树
+         * @param inorder 中序
+         * @param postorder 后序
+         * @return
+         */
+        public TreeNode buildTree(int[] inorder, int[] postorder) {
+            if (postorder==null || postorder.length==0) return null;
+            if (inorder==null || inorder.length==0) return null;
+            if (postorder.length != inorder.length) return null;
+            int len = inorder.length;
+            //根据中序遍历的结果，判断左子树和右子树个数
+            Map<Integer,Integer> indexMap = new HashMap<>();
+            for (int i=0;i<len;++i) indexMap.put(inorder[i],i);
+
+            TreeNode root = buildTree(postorder, 0, postorder.length - 1,
+                    inorder, 0, inorder.length - 1, indexMap);
+            return root;
+        }
+        private TreeNode buildTree(int[] postorder, int postorderStartIndex, int postorderEndIndex,
+                                   int[] inorder, int inorderStartIndex, int inorderEndIndex,
+                                   Map<Integer,Integer> indexMap){
+            if (postorderStartIndex > postorderEndIndex) return null;
+            int rootVal = postorder[postorderEndIndex];
+            TreeNode root = new TreeNode(rootVal);
+            if (postorderStartIndex == postorderEndIndex) return root;
+            else {
+                Integer rootIndex = indexMap.get(rootVal);
+                //左子树个数
+                int leftNodes = rootIndex - inorderStartIndex;
+                //右子树个数
+                int rightNodes = inorderEndIndex - rootIndex;
+                //重点    左子树                                    后序开始下标             后序结束下标 - 右子树节点个数 - 1
+                TreeNode leftSubTree = buildTree(postorder,postorderStartIndex,postorderEndIndex-rightNodes-1,
+                        //中序开始下标                根节点下标 - 1
+                        inorder,inorderStartIndex,rootIndex-1,
+                        indexMap);
+                //       右子树                                                后序开始下标 + 左子树节点个数                        后序结束下标 - 1
+                TreeNode rightSubTree = buildTree(postorder,postorderStartIndex+leftNodes,postorderEndIndex-1,
+                        //          根节点下标 + 1               中序结束下标
+                        inorder,rootIndex+1,inorderEndIndex,
+                        indexMap);
+                root.left = leftSubTree;
+                root.right = rightSubTree;
+                return root;
+            }
         }
     }
 
@@ -1766,6 +1824,21 @@ public class Solution {
         }
         return null;
         * */
+        /**
+         * 给定一个整数数组 nums 和一个目标值 target，请你在该数组中找出和为目标值的那 两个 整数，并返回他们的数组下标。
+         *
+         * 你可以假设每种输入只会对应一个答案。但是，数组中同一个元素不能使用两遍。
+         *
+         *         int len = nums.length;
+         *         Map<Integer,Integer> map = new HashMap<>();
+         *         for(int i=0;i<len;++i) {
+         *             if(map.containsKey(nums[i])) {
+         *                 return new int[]{i,map.get(nums[i])};
+         *             }
+         *             map.put(target-nums[i],i);
+         *         }
+         *         return new int[0];
+         */
 
         if (nums==null || nums.length==0) return new int[0];
         int len = nums.length;

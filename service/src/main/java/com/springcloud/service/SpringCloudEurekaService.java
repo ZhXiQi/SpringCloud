@@ -1,8 +1,13 @@
 package com.springcloud.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 
 /**
@@ -27,6 +32,7 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 @EnableEurekaServer
 @SpringCloudApplication
 public class SpringCloudEurekaService {
+
     public static void main(String[] args) {
         //设置属性
 //        System.setProperty("spring.devtools.restart.enabled", "false");
@@ -39,5 +45,44 @@ public class SpringCloudEurekaService {
          */
         SpringApplication.run(SpringCloudEurekaService.class,args);
     }
+
+    @Component
+    class B {
+        private A a;
+
+//        @Autowired
+//        public B(A a) {
+//            this.a = a;
+//        }
+
+        @Autowired
+        public void setA(A a) {
+            this.a = a;
+        }
+    }
+
+    @Component
+    class A {
+        private B b;
+        @Autowired
+        public A(B b) {
+            this.b = b;
+        }
+
+//        @Autowired
+//        public void setB(B b) {
+//            this.b = b;
+//        }
+    }
+
+    class Base {
+
+    }
+
+    class LevelOne extends Base {
+
+    }
+
+
 
 }

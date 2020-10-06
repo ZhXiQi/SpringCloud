@@ -17,4 +17,15 @@
         #{userPwd,jdbcType=VARCHAR},#{userName,jdbcType=VARCHAR})
     </insert>
 
+    <insert id="insertBatch" parameterType="java.util.List" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO table_name(id, filed1, filed2) VALUES
+        <foreach collection="records" item="record" separator=",">
+            (
+            #{record.id,jdbcType=INTEGER},
+            #{record.filed1,jdbcType=VARCHAR},
+            #{record.filed2,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
 </mapper>

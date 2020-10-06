@@ -3,6 +3,7 @@ package solution;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -446,6 +449,8 @@ public class Solution {
         int val;
         Node next;
         Node random;
+        Node left;
+        Node right;
 
         public Node(int val) {
             this.val = val;
@@ -1116,10 +1121,392 @@ public class Solution {
         return result;
     }
 
+    /**
+     * 单词搜索
+     * @param board
+     * @param word
+     * @return
+     */
+    public boolean exist(char[][] board, String word) {
+        if(board==null || word==null) return false;
+        int rows = board.length;
+        int cols = board[0].length;
+        for(int i=0;i<rows;++i) {
+            for(int j=0;j<cols;++j) {
+                boolean exi = exist(board,i,j,word,0,new boolean[rows][cols],word.length(),cols,rows);
+                if(exi) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean exist(char[][] board, int x, int y, String word, int index, boolean[][] visited,int len,int cols, int rows) {
+        if(visited[x][y] || board[x][y] != word.charAt(index)) return false;
+        if(index == len-1) return true;
+
+        visited[x][y] = true;
+        if(x>0) {
+            boolean exits = exist(board,x-1,y,word,index+1,visited,len,cols,rows);
+            if(exits) return true;
+        }
+        if(x<rows-1){
+            boolean exits = exist(board,x+1,y,word,index+1,visited,len,cols,rows);
+            if(exits) return true;
+        }
+        if(y>0){
+            boolean exits = exist(board,x,y-1,word,index+1,visited,len,cols,rows);
+            if(exits) return true;
+        }
+        if(y<cols-1) {
+            boolean exits = exist(board,x,y+1,word,index+1,visited,len,cols,rows);
+            if(exits) return true;
+        }
+        //回溯结束需要设置回去
+        visited[x][y] = false;
+        return false;
+    }
+
+    /**
+     * 迭代法中序遍历
+     * @param root
+     * @return
+     */
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        Deque<TreeNode> q = new ArrayDeque<>();
+        TreeNode leaf = root;
+        while(!q.isEmpty() || leaf!=null) {
+            while(leaf!=null) {
+                q.addLast(leaf);
+                leaf = leaf.left;
+            }
+            leaf = q.pollLast();
+            result.add(leaf.val);
+            leaf = leaf.right;
+        }
+        return result;
+    }
+
+    /**
+     * 迭代法后序遍历
+     * @param root
+     * @return
+     */
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        Deque<TreeNode> q = new ArrayDeque<>();
+        TreeNode prev = null;
+        while (!q.isEmpty() || root != null) {
+            while (root!=null) {
+                q.addLast(root);
+                root = root.left;
+            }
+            root = q.pollLast();
+            if (root.right == null || root.right == prev) {
+                result.add(root.val);
+                prev = root;
+                root = null;
+            }else {
+                q.addLast(root);
+                root = root.right;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 二叉搜索树的插入
+     * @param root
+     * @param val
+     * @return
+     */
+    public TreeNode insertIntoBST(TreeNode root, int val) {
+        if(root==null) return new TreeNode(val);
+        TreeNode ppos = root;
+        while(ppos != null) {
+            if(ppos.val < val) {
+                if(ppos.right==null) {
+                    ppos.right = new TreeNode(val);
+                    return root;
+                }else{
+                    ppos = ppos.right;
+                }
+            }else{
+                if(ppos.left==null) {
+                    ppos.left = new TreeNode(val);
+                    return root;
+                }else{
+                    ppos = ppos.left;
+                }
+            }
+        }
+        return root;
+    }
+
+    /**
+     * 解数独
+     * @param board
+     */
+    public void solveSudoku(char[][] board) {
+        int rows = board.length;
+        int cols = board[0].length;
+        boolean[][] colUse = new boolean[9][10];
+        boolean[][] rowUse = new boolean[9][10];
+        boolean[][][] numUsed = new boolean[3][3][10];
+        for (int row=0;row<rows;++row) {
+            for (int col=0;col<cols;++col) {
+                int num = board[row][col] - '0';
+                if (num >=0 && num <= 9) {
+                    rowUse[row][num] = true;
+                    colUse[col][num] = true;
+                    numUsed[row/3][col/3][num] = true;
+                }
+            }
+        }
+        solveSudoku(board,rowUse,colUse,numUsed,0,0);
+    }
+    public boolean solveSudoku(char[][] board, boolean[][] rowUsed, boolean[][] colUsed, boolean[][][] numUsed, int row, int col){
+        //终止条件,先row不懂，遍历col，col遍历完，row加一，col从头开始
+        if (col == board[0].length) {
+            col = 0;
+            //先遍历列
+            ++row;
+            if (row == board.length) return true;
+        }
+        if (board[row][col] == '.') {
+            for (int num=1;num<=9;++num) {
+                int i = row / 3;
+                int j = col / 3;
+                //当前数字是否可用
+                boolean numCanUse = !(rowUsed[row][num] || colUsed[col][num] || numUsed[i][j][num]);
+                if (numCanUse) {
+                    //如果该数字可用
+                    rowUsed[row][num] = true;
+                    colUsed[col][num] = true;
+                    numUsed[i][j][num] = true;
+                    board[row][col] = (char) (num + '0');
+                    if (solveSudoku(board,rowUsed,colUsed,numUsed,row,col+1)) {
+                        return true;
+                    }
+                    //否则回溯
+                    rowUsed[row][num] = false;
+                    colUsed[col][num] = false;
+                    numUsed[i][j][num] = false;
+                    board[row][col] = '.';
+                }
+            }
+        } else return solveSudoku(board,rowUsed,colUsed,numUsed,row,col+1);
+        return false;
+    }
+
+    /**
+     * 翻转二叉树
+     * @param root
+     * @return
+     */
+    public TreeNode invertTree(TreeNode root) {
+        if (root != null) {
+            TreeNode tmp = root.left;
+            root.left = root.right;
+            root.right = tmp;
+            invertTree(root.left);
+            invertTree(root.right);
+        }
+        return root;
+    }
+
+    /**
+     * 全排列 II
+     * 回溯
+     * @param args
+     */
+    private boolean[] flag;
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        int len = nums.length;
+        flag = new boolean[len];
+        //排序
+        Arrays.sort(nums);
+        permuteUnique(nums,0,len,new ArrayList<Integer>());
+        return result;
+    }
+    public void permuteUnique(int[] nums, int index,int len, List<Integer> tmp) {
+        if(index==len) {
+            result.add(new ArrayList<Integer>(tmp));
+            return;
+        } else {
+            for(int i = 0;i<len;++i) {
+                //基于排好序的情况下
+                if(flag[i] || (i>0 && nums[i]==nums[i-1] && !flag[i-1])) continue;
+                flag[i] = true;
+                tmp.add(nums[i]);
+                permuteUnique(nums,index+1,len,tmp);
+                flag[i] = false;
+                tmp.remove(index);
+            }
+        }
+    }
+
+    /**
+     * 冗余连接 II
+     * 并查集
+     * @param edges
+     * @return
+     */
+    public int[] findRedundantDirectedConnection(int[][] edges) {
+
+        return null;
+    }
+
+    /**
+     * 子集
+     * @param nums
+     * @return
+     */
+    public List<List<Integer>> subsets(int[] nums) {
+        int len = nums.length;
+        subsets(nums,0,new ArrayList<Integer>(),len);
+        return result;
+    }
+    public void subsets(int[] nums, int index, List<Integer> tmp, int len) {
+        result.add(new ArrayList<>(tmp));
+        for(int i=index;i<len;++i) {
+            tmp.add(nums[i]);
+            subsets(nums,i+1,tmp,len);
+            tmp.remove(tmp.size()-1);
+        }
+    }
+
+    /**
+     * 合并二叉树
+     * @param t1
+     * @param t2
+     */
+    public TreeNode mergeTrees(TreeNode t1, TreeNode t2) {
+        if (t1!=null && t2==null) return t1;
+        if (t1==null && t2!=null) return t2;
+        if (t1==null && t2==null) return null;
+
+        t1.left = mergeTrees(t1.left,t2.left);
+        t1.right = mergeTrees(t1.right,t2.right);
+        t1.val += t2.val;
+        return t1;
+    }
+
+    /**
+     * 二叉搜索树中的众数
+     */
+    private List<Integer> l = new ArrayList<>();
+    private int curTime, maxTime, preVal;
+    public int[] findMode(TreeNode root) {
+        if (root==null) return null;
+        bfs4FindMode(root);
+        int size = l.size();
+        int[] result = new int[size];
+        for (int i=0;i<size;++i) {
+            result[i] = l.get(i);
+        }
+        return result;
+    }
+    private void bfs4FindMode(TreeNode root) {
+        if (root!=null) {
+            bfs4FindMode(root.left);
+            if (root.val == preVal) {
+                ++curTime;
+            } else {
+                preVal = root.val;
+                curTime = 1;
+            }
+            if (curTime == maxTime) {
+                l.add(root.val);
+            } else if (curTime > maxTime) {
+                l.clear();
+                l.add(root.val);
+                maxTime = curTime;
+            }
+            bfs4FindMode(root.right);
+        }
+    }
+
+    /**
+     * 路径总和 II
+     * @param root
+     * @param sum
+     * @return
+     */
+    public List<List<Integer>> pathSumII(TreeNode root, int sum) {
+        pathSumII(root,sum,new ArrayList<Integer>());
+        return result;
+    }
+    public void pathSumII(TreeNode root, int sum, List<Integer> tmp) {
+        if (root==null) return;
+        if(root.left==null && root.right==null && sum!=root.val) return;
+        tmp.add(root.val);
+        if (sum==root.val && root.left==null && root.right==null) {
+            result.add(new ArrayList<>(tmp));
+            //这里不移除，会少移除一个
+            tmp.remove(tmp.size()-1);
+            return;
+        }
+        pathSumII(root.left,sum-root.val,tmp);
+        pathSumII(root.right,sum-root.val,tmp);
+        tmp.remove(tmp.size()-1);
+    }
+
+    /**
+     * 填充每个节点的下一个右侧节点指针 II
+     * BFS
+     * @param root
+     * @return
+     */
+    public Node connect(Node root) {
+        if(root==null) return root;
+        ArrayDeque<Node> q = new ArrayDeque<>();
+        q.addLast(root);
+        while(!q.isEmpty()) {
+            int size = q.size();
+            Node tmp = q.pollFirst();
+            if(tmp.left!=null)q.addLast(tmp.left);
+            if(tmp.right!=null)q.addLast(tmp.right);
+            for(int i=1;i<size;++i) {
+                Node one = q.pollFirst();
+                tmp.next = one;
+                tmp = one;
+                if(one.left!=null) q.addLast(one.left);
+                if(one.right!=null) q.addLast(one.right);
+            }
+            tmp.next = null;
+        }
+        return root;
+    }
+
+    /**
+     * 二叉搜索树的最近公共祖先
+     * 利用二叉搜索树的特点
+     * @param
+     */
+    TreeNode lcaResult;
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        lca(root,p,q);
+        return lcaResult;
+    }
+    public void lca(TreeNode root, TreeNode p, TreeNode q) {
+        //利用二叉搜索树的特点
+        if ((root.val - p.val) * (root.val - q.val) <= 0) {
+            lcaResult = root;
+        }else if (root.val < p.val && root.val < q.val) lca(root.right,p,q);
+        else lca(root.left,p,q);
+    }
+
 
     public static void main(String[] args) {
         Solution solution = new Solution();
+        TreeMap<Integer,Integer> map = new TreeMap<>();
 
+        String itnl = "131TEXT";
+        char c = itnl.charAt(0);
+        System.out.println(c);
+
+        solution.subsets(new int[]{1,2,3});
         solution.combinationSum(new int[]{2,3,6,7},7);
         int i = solution.strToInt("91283472332");
         System.out.println(i);
