@@ -1,19 +1,26 @@
 package solution;
 
+import org.springframework.util.CollectionUtils;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 
 /**
@@ -23,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Solution {
 
-    public class ListNode {
+    public static class ListNode {
         int val;
         ListNode next;
         ListNode(int x) { val = x; }
@@ -86,6 +93,7 @@ public class Solution {
 
     /**
      * 回文链表
+     * 快慢指针
      * @param head
      * @return
      */
@@ -1168,6 +1176,7 @@ public class Solution {
 
     /**
      * 迭代法中序遍历
+     * https://leetcode-cn.com/problems/binary-tree-preorder-traversal/solution/leetcodesuan-fa-xiu-lian-dong-hua-yan-shi-xbian-2/
      * @param root
      * @return
      */
@@ -1497,12 +1506,395 @@ public class Solution {
         else lca(root.left,p,q);
     }
 
+    /**
+     * 二叉搜索树的最小绝对值差
+     * 暴力法
+     * @param root
+     * @return
+     */
+    List<Integer> list = new ArrayList<>();
+    public int getMinimumDifference(TreeNode root) {
+        if (root==null) return Integer.MAX_VALUE;
+        getMinimumDifference_dfs(root);
+        list.sort(new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o2 - o1;
+            }
+        });
+        int i=list.get(0),res=Integer.MAX_VALUE;
+        int size = list.size();
+        for (int k=1;k<size;++k) {
+            int tmp = list.get(k) - i;
+            if (tmp < res) res = tmp;
+            i = list.get(k);
+        }
+        return res;
+    }
+    public void getMinimumDifference_dfs(TreeNode root) {
+        if (root==null) return;
+        list.add(root.val);
+        getMinimumDifference_dfs(root.left);
+        getMinimumDifference_dfs(root.right);
+    }
+
+    /**
+     * 二叉搜索树的最小绝对值差
+     * 利用二叉搜索树特性
+     * @param root
+     * @return
+     */
+    TreeNode preNode = null;
+    Integer resultValue = Integer.MAX_VALUE;
+    public int getMinimumDifference2(TreeNode root) {
+        if (root==null) return Integer.MAX_VALUE;
+        getMinimumDifference2_dfs(root);
+        return resultValue;
+    }
+    public void getMinimumDifference2_dfs(TreeNode root) {
+        if (root==null) return;
+        getMinimumDifference_dfs(root.left);
+        if (preNode != null) {
+            resultValue = Math.min(Math.abs(root.val - preNode.val),resultValue);
+        }
+        preNode = root;
+        getMinimumDifference_dfs(root.right);
+    }
+
+    /**
+     * 24. 两两交换链表中的节点
+     * 使用递归来解决该题，主要就是递归的三部曲：
+     *
+     * 找终止条件：本题终止条件很明显，当递归到链表为空或者链表只剩一个元素的时候，没得交换了，自然就终止了。
+     * 找返回值：返回给上一层递归的值应该是已经交换完成后的子链表。
+     * 单次的过程：因为递归是重复做一样的事情，所以从宏观上考虑，只用考虑某一步是怎么完成的。
+     * 我们假设待交换的俩节点分别为head和next，next的应该接受上一级返回的子链表(参考第2步)。
+     * 就相当于是一个含三个节点的链表交换前两个节点，就很简单了，想不明白的画画图就ok。
+     * @param head
+     * @return
+     */
+    public ListNode swapPairs(ListNode head) {
+        if(head==null || head.next==null) return head;
+        ListNode nextNode = head.next;
+        head.next = swapPairs(nextNode.next);
+        nextNode.next = head;
+        return nextNode;
+    }
+
+    /**
+     * 1002. 查找常用字符
+     * @param A
+     * @return
+     */
+    public List<String> commonChars(String[] A) {
+        int[] minFeq = new int[26];
+        Arrays.fill(minFeq,Integer.MAX_VALUE);
+        for (int i=0;i<A.length;++i) {
+            for (String word : A) {
+                int[] feq = new int[26];
+                int length = word.length();
+                for (int j=0;j<length;++j) {
+                    ++feq[word.charAt(j) - 'a'];
+                }
+                for (int j=0;j<26;++j) {
+                    minFeq[j] = Math.min(minFeq[j],feq[j]);
+                }
+            }
+        }
+        List<String> result = new ArrayList<>();
+        for (int i=0;i<26;++i) {
+            for (int j=0;j<minFeq[i];++j) {
+                result.add(String.valueOf((char)('a' + i)));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 116. 填充每个节点的下一个右侧节点指针
+     * @param root
+     * @return
+     */
+    public Node connectOne(Node root) {
+        Queue<Node> queue = new ArrayDeque<>();
+        if(root!=null)queue.add(root);
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            Node preNode = null;
+            for (int i=0;i<size;++i) {
+                Node poll = queue.poll();
+                if(i==0) {
+                    preNode = poll;
+                } else {
+                    preNode.next = poll;
+
+                    preNode = preNode.next;
+                }
+                if (poll.left!=null) queue.add(poll.left);
+                if (poll.right!=null) queue.add(poll.right);
+
+            }
+        }
+        return root;
+    }
+
+    /**
+     * 经典题解，核心思路：
+     * 1. 使用常规深度优先一层层搜索
+     * 2. 使用三个整形分别标记每一层哪些格子可以放置皇后，这三个整形分别代表
+     *      列、左斜下、右斜下（col，ld，rd），二进制位为 1 代表不能放置，0代表可以放置
+     * 3. 两个核心运算：
+     *      1. x & -x 代表除最后一位 1 保留，其它位全部为 0
+     *      2. x & (x - 1) 代表将最后一位 1 变成 0
+     * @param n
+     * @return
+     */
+    private int result4totalNQueens;
+    public int totalNQueens(int n) {
+
+        totalNQueensDfs(n,0,0,0,0);
+        return result4totalNQueens;
+    }
+
+    public void totalNQueensDfs(int n, int row, int col, int ld, int rd) {
+        if (row >= n) { ++result4totalNQueens; return; }
+
+        // 将所有能放置 Q 的位置由 0 变成 1，以便进行后续的位遍历
+        int bits = ~(col | ld | rd) & ((1 << n) - 1);
+        while (bits > 0) {
+            int pick = bits & -bits; // 注: x & -x
+            totalNQueensDfs(n, row + 1, col | pick, (ld | pick) << 1, (rd | pick) >> 1);
+            bits &= bits - 1; // 注: x & (x - 1)
+        }
+    }
+
+    /**
+     * 19. 删除链表的倒数第N个节点
+     * 双指针法
+     * 还可以使用 递归法
+     * @param head
+     * @param n
+     * @return
+     */
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode firstNode = head;
+        ListNode secondNode = head;
+        int count = 0;
+        if(head==null) return head;
+        while (secondNode.next!=null) {
+            if (count >= n) {
+                secondNode = secondNode.next;
+                firstNode = firstNode.next;
+            } else {
+                secondNode = secondNode.next;
+            }
+            ++count;
+        }
+        //while退出时表示 secondNode 位于最后一个节点，firstNode位于前n个
+        if(count+1==n) return head.next;
+        firstNode.next = firstNode.next.next;
+        return head;
+    }
+
+    /**
+     * 844. 比较含退格的字符串
+     * @param S
+     * @param T
+     * @return
+     */
+    public boolean backspaceCompare(String S, String T) {
+        int lengthS = S.length();
+        int lengthT = T.length();
+        StringBuffer sbS = new StringBuffer();
+        StringBuffer sbT = new StringBuffer();
+        for (int i=0;i<lengthS;++i) {
+            if (S.charAt(i) == '#') {
+                if (sbS.length()>0) sbS.deleteCharAt(sbS.length()-1);
+            } else {
+                sbS.append(S.charAt(i));
+            }
+        }
+        for (int i=0;i<lengthT;++i) {
+            if (T.charAt(i) == '#') {
+                if (sbT.length()>0) sbT.deleteCharAt(sbT.length()-1);
+            } else {
+                sbT.append(T.charAt(i));
+            }
+        }
+        return sbS.toString().equals(sbT.toString());
+    }
+
+    public void reorderList(ListNode head) {
+        if(head==null) return;
+        Deque<ListNode> one = new ArrayDeque<>();
+        Deque<ListNode> two = new ArrayDeque<>();
+        ListNode first = head;
+        ListNode second = head;
+        while (second.next!=null && second.next.next!=null) {
+            one.add(first);
+            first = first.next;
+            second = second.next.next;
+        }
+        one.add(first);
+        first = first.next;
+        while (first!=null) {
+            two.add(first);
+            first = first.next;
+        }
+
+        ListNode result = head;
+        if (one.size()==1 && two.size()==0) return;
+        while (!one.isEmpty() || !two.isEmpty()) {
+            if (!one.isEmpty()) {
+                ListNode tmp = one.pollFirst();
+                tmp.next = null;
+                result.next = tmp;;
+                result = result.next;
+            }
+            if (!two.isEmpty()) {
+                ListNode tmp = two.pollLast();
+                tmp.next = null;
+                result.next = tmp;
+                result = result.next;
+            }
+        }
+    }
+
+    public List<Integer> preorderTraversal(TreeNode root) {
+
+        Deque<TreeNode> deque = new ArrayDeque<>();
+        List<Integer> result = new ArrayList<>();
+        if (root!=null) deque.add(root);
+        while (!deque.isEmpty()) {
+            TreeNode treeNode = deque.pollLast();
+            result.add(treeNode.val);
+            if (treeNode.right!=null) deque.addLast(treeNode.right);
+            if (treeNode.left!=null) deque.addLast(treeNode.left);
+        }
+        return result;
+    }
+
+
+    /**
+     * 1207. 独一无二的出现次数
+     * @param arr
+     * @return
+     */
+    public boolean uniqueOccurrences(int[] arr) {
+        if(arr==null) return true;
+        Map<Integer,Integer> map = new HashMap<>();
+        int len = arr.length;
+        for(int i=0;i<len;++i) {
+            int num = map.getOrDefault(arr[i],0);
+            map.put(arr[i],num+1);
+        }
+
+        return map.size() == new HashSet<Integer>(map.values()).size();
+    }
+
+    /**
+     * 129. 求根到叶子节点数字之和
+     */
+    public int sumNumbers;
+    public int sumNumbers(TreeNode root) {
+
+        if (root==null) return 0;
+        dfs4sumNumbers(root,0);
+        return sumNumbers;
+    }
+
+    public void dfs4sumNumbers(TreeNode root,int value) {
+        if (root.left==null && root.right==null) {
+            value = value*10 + root.val;
+            sumNumbers += value;
+            return;
+        }
+        value = value*10+root.val;
+        if (root.left!=null) dfs4sumNumbers(root.left,value);
+        if (root.right!=null) dfs4sumNumbers(root.right,value);
+    }
+
+    /**
+     * 岛屿的总周长
+     * @param grid
+     * @return
+     */
+    public int islandPerimeter(int[][] grid) {
+        if (grid==null || grid.length==0) return 0;
+        int rows = grid.length;
+        int cols = grid[0].length;
+        int result = 0;
+        for (int i=0;i<rows;++i) {
+            for (int j=0;j<cols;++j) {
+                if (grid[i][j]==1) {
+                    //上
+                    if (i-1<0 || grid[i-1][j]==0) ++result;
+                    //左
+                    if (j-1<0 || grid[i][j-1]==0) ++result;
+                    //下
+                    if (i+1>rows || grid[i+1][j]==0) ++result;
+                    //右
+                    if (j+1>cols || grid[i][j+1]==0) ++result;
+                }
+            }
+        }
+        return result;
+    }
+
+    static class test {
+        private Integer a;
+        private String b;
+
+        public Integer getA() {
+            return a;
+        }
+
+        public void setA(Integer a) {
+            this.a = a;
+        }
+
+        public String getB() {
+            return b;
+        }
+
+        public void setB(String b) {
+            this.b = b;
+        }
+    }
 
     public static void main(String[] args) {
         Solution solution = new Solution();
-        TreeMap<Integer,Integer> map = new TreeMap<>();
+        List<String> list = Arrays.asList(new String[]{"12", "23"});
 
-        String itnl = "131TEXT";
+        ListNode node = new ListNode(1);
+        solution.reorderList(node);
+
+        TreeMap<Integer,Integer> map = new TreeMap<>();
+        map.put(1,2);
+        map.put(3,4);
+        Collection<Integer> values = map.values();
+        values.parallelStream().forEach(t->{
+            System.out.println("----");
+        });
+        List<test> collect = values.parallelStream().map(t -> {
+            if (t.intValue() == 1) {
+                test test = new test();
+                test.setA(t);
+                test.setB(String.valueOf(t));
+                return test;
+            }
+            return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+//        collect.removeAll(Collections.singleton(null));
+        System.out.println(CollectionUtils.isEmpty(collect));
+
+        String itnl = "131TEXT-9已";
+        //去除数字，英文，汉字  之外的内容
+//        String s = itnl.replaceAll("[^a-zA-Z0-9\\u4E00-\\u9FA5]", "");
+        // replaceAll("[\\s*|\t|\r|\n]", "");  // 去除所有空格，制表符
+        itnl = itnl.replaceAll("[^0-9]", "");
+        System.out.println(itnl);
         char c = itnl.charAt(0);
         System.out.println(c);
 
@@ -1512,6 +1904,7 @@ public class Solution {
         System.out.println(i);
         Map<Integer,Integer> hashmap = new HashMap<>();
 
+        
 //        int abcabcbb = solution.lengthOfLongestSubstring("abcabcbb");
 //        System.out.println(abcabcbb);
 //
