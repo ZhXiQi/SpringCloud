@@ -63,3 +63,9 @@ logging:
   level:
     cn.xxx.core.dao: debug
     cn.xxx.wallet.core.dao: debug
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  mapper-locations: classpath:sqlmap/*.xml
+#  type-aliases-package:

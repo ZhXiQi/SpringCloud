@@ -2,6 +2,7 @@ package com.springcloud.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +30,7 @@ import javax.annotation.Resource;
  * 使用@SpringCloudApplication需要进入Springboot依赖外，还需要引入[eureka-client] 和 [hystrix] 两个依赖：
  *
  */
+@ServletComponentScan
 @EnableEurekaServer
 @SpringCloudApplication
 public class SpringCloudEurekaService {
@@ -64,15 +66,15 @@ public class SpringCloudEurekaService {
     @Component
     class A {
         private B b;
-        @Autowired
-        public A(B b) {
-            this.b = b;
-        }
-
 //        @Autowired
-//        public void setB(B b) {
+//        public A(B b) {
 //            this.b = b;
 //        }
+
+        @Autowired
+        public void setB(B b) {
+            this.b = b;
+        }
     }
 
     class Base {

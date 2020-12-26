@@ -3,7 +3,6 @@ package com.springboot.core.common.response;
 
 
 /**
- * Created by superlee on 2017/11/7.
  * baseResult工程方法
  */
 @SuppressWarnings("unchecked")

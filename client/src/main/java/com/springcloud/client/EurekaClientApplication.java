@@ -12,6 +12,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
+import java.time.LocalDateTime;
+
 /**
  * @author ZhXiQi
  * @Title: 服务的注册和发现 —— eureka 客户端

@@ -4,7 +4,6 @@ package com.springboot.core.common.response;
 import com.alibaba.fastjson.JSONObject;
 
 /**
- * Created by superlee on 2017/11/6.
  */
 @SuppressWarnings("unchecked")
 public final class BaseResult<T> {

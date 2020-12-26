@@ -1,6 +1,8 @@
 server:
   port: 9091
-
+  tomcat:
+    # SpringBoot内置的Tomcat最大并发数，默认设置是200
+    max-threads: 10000
 eureka:
   instance:
     hostname: clientOne
@@ -29,6 +31,7 @@ spring:
   devtools:
     livereload:
       port: 35730
+  # 本地缓存设置
   cache:
     type: caffeine
     cache-names: userCache

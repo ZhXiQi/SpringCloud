@@ -1,7 +1,9 @@
 package solution;
 
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
+import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,11 +18,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -611,6 +617,58 @@ public class Solution {
         }
         return dp[length-1];
     }
+
+    /**
+     * 股票的最大价值II
+     * @param prices
+     * @return
+     */
+    public int maxProfit2(int[] prices) {
+        /**
+         * 贪心算法，只要第二天股价比第一天高就卖出，且只加正值
+         */
+        if(prices==null) return 0;
+        int len = prices.length;
+        if(len < 2) return 0;
+
+        /*//贪心法
+        int result = 0;
+        for(int i=1;i<len;++i) {
+            int tmp = prices[i] - prices[i-1];
+            if(tmp > 0) result += tmp;
+        }
+        return result;*/
+
+        /**
+         * 动态规划法 ---- https://leetcode-cn.com/problems/best-time-to-buy-and-sell-stock-ii/solution/tan-xin-suan-fa-by-liweiwei1419-2/
+         * 第一步：定义状态
+         *      状态 dp[i][j] 定义如下：
+         *          dp[i][j] 表示到下标为 i 的这一天，持股状态为 j 时，我们手上拥有的最大现金数
+         *          注意：限定持股状态为 j 是为了方便推导状态转移方程，这样的做法满足 无后效性
+         *          其中：
+         *              第一维 i 表示下标为 i 的那一天（具有前缀性质，即考虑了之前的天数的交易）
+         *              第二维 j 表示下标为 i 的那一天是持有股票，还是持有现金。这里 0 表示持有现金，1表示持有股票
+         */
+
+
+        // cash：持有现金
+        // hold：持有股票
+        // 状态数组
+        // 状态转移：cash → hold → cash → hold → cash → hold → cash
+        int[] cash = new int[len];
+        int[] hold = new int[len];
+
+        cash[0] = 0;
+        hold[0] = -prices[0];
+
+        for (int i = 1; i < len; i++) {
+            // 这两行调换顺序也是可以的
+            cash[i] = Math.max(cash[i - 1], hold[i - 1] + prices[i]);
+            hold[i] = Math.max(hold[i - 1], cash[i - 1] - prices[i]);
+        }
+        return cash[len - 1];
+    }
+
 
     class Node2 {
         public int val;
@@ -1841,6 +1899,436 @@ public class Solution {
         return result;
     }
 
+    public int[] intersection(int[] nums1, int[] nums2) {
+
+        int len1 = nums1.length;
+        int len2 = nums2.length;
+        if (len1==0 || len2==0) return new int[0];
+        Set<Integer> set = new HashSet<>();
+
+        for (int i=0;i<len1;++i) {
+            set.add(nums1[i]);
+        }
+        Set<Integer> s = new HashSet<>();
+        for (int j=0;j<len2;++j) {
+            if (set.contains(nums2[j])) s.add(nums2[j]);
+        }
+
+        int[] result = new int[s.size()];
+        int num = 0;
+        for (Integer i:s) {
+            result[num++] = i;
+        }
+        return result;
+    }
+
+    /**
+     * 有效的山脉数组
+     * @param A
+     * @return
+     */
+    public boolean validMountainArray(int[] A) {
+        if (A == null || A.length < 3) return false;
+        int length = A.length;
+        int left = 0, right = length - 1;
+        while (left < length - 2 && A[left] < A[left+1]) ++left;
+        while (right > 1 && A[right] < A[right-1]) --right;
+        return left==right;
+    }
+
+    /**
+     * 插入区间
+     * @param intervals
+     * @param newInterval
+     * @return
+     */
+    public int[][] insert(int[][] intervals, int[] newInterval) {
+
+        int[][] res = new int[intervals.length+1][2];
+        int idx = 0;
+        int i = 0;
+        while (i<intervals.length && intervals[i][1] < newInterval[0]) {
+            res[idx++] = intervals[i++];
+        }
+
+        while (i<intervals.length && intervals[i][0] <= newInterval[1]) {
+            newInterval[0] = Math.min(intervals[i][0],newInterval[0]);
+            newInterval[1] = Math.max(intervals[i][1],newInterval[1]);
+            ++i;
+        }
+        res[idx++] = newInterval;
+        while (i < intervals.length) {
+            res[idx++] = intervals[i++];
+        }
+        return Arrays.copyOf(res,idx);
+    }
+
+    /**
+     * 单词接龙
+     * 需要掌握的知识递进：
+     * 1.BFS。
+     *  2.双端BFS。
+     * 3.临近点查找方式：
+     * 首先将所有的字符存到结构为HashSet的dic字典里去，然后将字符串的每一位挨个从a变到z,
+     * 在变化的时候实时去字典里查，因为是hashset，所以复杂度是O(1)，非常快。
+     * 如果查到了，则就是找到了临近点。
+     */
+    //递归
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        if (wordList == null || wordList.size() == 0) return 0;
+        //hashset的好处：去重也完成了
+        //开始端
+        HashSet<String> start = new HashSet<>();
+        //结束端
+        HashSet<String> end = new HashSet<>();
+        //所有字符串的字典
+        HashSet<String> dic = new HashSet<>(wordList);
+        start.add(beginWord);
+        end.add(endWord);
+        if (!dic.contains(endWord)) return 0;
+        //经历过上面的一系列判定，到这里的时候，若是有路径，则最小是2，所以以2开始
+        return bfs(start, end, dic, 2);
+
+    }
+
+    public int bfs(HashSet<String> st, HashSet<String> ed, HashSet<String> dic, int l) {
+        //双端查找的时候，若是有任意一段出现了“断裂”，也就是说明不存在能够连上的路径，则直接返回0
+        if (st.size() == 0) return 0;
+        if (st.size() > ed.size()) {//双端查找，为了优化时间，永远用少的去找多的，比如开始的时候塞进了1000个，而结尾只有3个，则肯定是从少的那一端开始走比较好
+            return bfs(ed, st, dic, l);
+        }
+        //BFS的标记行为，即使用过的不重复使用
+        dic.removeAll(st);
+        //收集下一层临近点
+        HashSet<String> next = new HashSet<>();
+        for (String s : st) {
+            char[] arr = s.toCharArray();
+            for (int i = 0; i < arr.length; i++) {
+                char tmp = arr[i];
+                //变化
+                for (char c = 'a'; c <= 'z'; c++) {
+                    if (tmp == c) continue;
+                    arr[i] = c;
+                    String nstr = new String(arr);
+                    if (dic.contains(nstr)) {
+                        if (ed.contains(nstr)) return l;
+                        else next.add(nstr);
+                    }
+                }
+                //复原
+                arr[i] = tmp;
+            }
+        }
+        return bfs(next, ed, dic, l + 1);
+    }
+
+    /**
+     * 根据数字二进制下 1 的数目排序
+     * @param arr
+     * @return
+     */
+    public int[] sortByBits(int[] arr) {
+        if (arr == null) return new int[0];
+        int length = arr.length;
+        Integer[] result = new Integer[length];
+        for (int i=0;i<length;++i) {
+            result[i] = arr[i];
+        }
+        Arrays.sort(result,(a,b) -> {
+            int bitCountA = Integer.bitCount(a);
+            int bitCountB = Integer.bitCount(b);
+            return bitCountA==bitCountB?a - b:bitCountA-bitCountB;
+        });
+        for (int i=0;i<length;++i) arr[i] = result[i];
+        return arr;
+    }
+    
+    class SortEntity {
+        private int key;
+        private int value;
+
+        public SortEntity(int key, int value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public int getKey() {
+            return key;
+        }
+
+        public void setKey(int key) {
+            this.key = key;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public void setValue(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof SortEntity)) return false;
+            SortEntity that = (SortEntity) o;
+            return getKey() == that.getKey() &&
+                    getValue() == that.getValue();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getKey(), getValue());
+        }
+
+    }
+
+    /**
+     * 区间和的个数
+     * @param nums
+     * @param lower
+     * @param upper
+     * @return
+     */
+    public int countRangeSum(int[] nums, int lower, int upper) {
+        int len = nums.length;
+        int result = 0;
+        for (int i=0;i<len;++i) {
+            long tmp = nums[i];
+            for (int j=i;j<len;++j) {
+                if (j>i) tmp += nums[j];
+                System.out.println(MessageFormat.format("tmp:{0}",tmp));
+                if (lower <= tmp && tmp <= upper) ++result;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 最接近原点的k个点
+     * @param points
+     * @param K
+     * @return
+     */
+    public int[][] kClosest(int[][] points, int K) {
+        if(points==null) return new int[0][0];
+        /*
+        int length = points.length;
+        Queue<int[]> queue = new PriorityQueue<>((a,b) -> a[0]*a[0] - b[0]*b[0] + a[1]*a[1] - b[1]*b[1]);
+        for (int i=0;i<length;++i) {
+            queue.add(points[i]);
+        }
+        int size = queue.size();
+        int len;
+        if (K<size) len = K;
+        else len = size;
+        int[][] result = new int[len][2];
+        for (int i=0;i<len;++i) {
+            result[i] = queue.poll();
+        }
+        return  result;
+        */
+
+        return Arrays.stream(points)
+                .sorted(Comparator.comparingInt(o -> (o[0] * o[0] + o[1] * o[1])))
+                .limit(K)
+                .collect(Collectors.toList())
+                .toArray(new int[K][2]);
+    }
+
+    /**
+     * 根据身高重建队列
+     * @param people
+     * @return
+     */
+    public int[][] reconstructQueue(int[][] people) {
+        //按照身高降序，K升序排序
+        Arrays.sort(people,(o1, o2) -> o1[0] == o2[0] ? o1[1] - o2[1] : o2[0] - o1[0]);
+
+        /**
+         * K值定义为：排在H前面且身高大于或等于H的人数
+         * 因为从身高降序开始插入，此时所有人身高都大于等于H
+         * 因此K值即为需要插入的位置
+         */
+        List<int[]> list = new ArrayList<>();
+        for (int[] arr:people) {
+            list.add(arr[1],arr);
+        }
+        return list.toArray(new int[list.size()][]);
+    }
+
+    /**
+     * 三角形的最大周长
+     * @param A
+     * @return
+     */
+    public int largestPerimeter(int[] A) {
+        if (A==null || A.length<3) return 0;
+        Arrays.sort(A);
+        int length = A.length;
+        for (int i=length-1;i>=2;--i) {
+            if (A[i-2] + A[i-1] > A[i]) return A[i-2] + A[i-1] + A[i];
+        }
+        return 0;
+    }
+
+    private int findFirstPosition(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length - 1;
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            // 小于一定不是解
+            if (nums[mid] < target) {
+                // 下一轮搜索区间是 [mid + 1, right]
+                left = mid + 1;
+            } else if (nums[mid] == target) {
+                // 下一轮搜索区间是 [left, mid]
+                right = mid;
+            } else {
+                // nums[mid] > target，下一轮搜索区间是 [left, mid - 1]
+                right = mid - 1;
+            }
+        }
+
+        if (nums[left] == target) {
+            return left;
+        }
+        return -1;
+    }
+
+    private int findLastPosition(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length - 1;
+        while (left < right) {
+            int mid = left + (right - left + 1) / 2;
+            if (nums[mid] > target) {
+                // 下一轮搜索区间是 [left, mid - 1]
+                right = mid - 1;
+            } else if (nums[mid] == target){
+                // 下一轮搜索区间是 [mid, right]
+                left = mid;
+            } else {
+                // nums[mid] < target，下一轮搜索区间是 [mid + 1, right]
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
+
+    /**
+     * 在排序数组中查找元素的第一个和最后一个位置
+     * @param nums
+     * @param target
+     * @return
+     */
+    public int[] searchRange(int[] nums, int target) {
+        int[] result = new int[]{-1,-1};
+        if (nums==null) return result;
+        int length = nums.length;
+        if (length==0) return result;
+        /*int count = 0;
+        for (int i=0;i<length;++i) {
+            if (nums[i]==target) {
+                ++count;
+                result[1] = i;
+            } else if (count > 0) break;
+        }
+        if (count>0) result[0] = result[1] - count;
+        return result;*/
+        int firstPosition = findFirstPosition(nums, target);
+        if (firstPosition==-1) return result;
+        int lastPosition = findLastPosition(nums, target);
+        result[0] = firstPosition;
+        result[1] = lastPosition;
+        return result;
+    }
+
+    /**
+     * 翻转矩阵后的得分
+     * @param A
+     * @return
+     */
+    public int matrixScore(int[][] A) {
+        if(A==null) return 0;
+        int rows = A.length;
+        int cols = A[0].length;
+        //先判断每一行首位是不是1,不是1就翻转
+        for (int i=0;i<rows;++i) {
+            if (A[i][0]==0) {
+                for (int j=0;j<cols;++j) {
+                    A[i][j] = 1- A[i][j];
+                }
+            }
+        }
+        //然后判断从第二列开始，每列1的个数要大于等于0
+        for (int j=1;j<cols;++j) {
+            int numOfZero = 0;
+            for (int i=0;i<rows;++i) {
+                if (A[i][j]==0) ++numOfZero;
+            }
+            //rows 才代表列的个数
+            if (numOfZero > (rows-numOfZero)) {
+                //翻转
+                for (int i=0;i<rows;++i) {
+                    A[i][j] = 1 - A[i][j];
+                }
+            }
+        }
+        //计算
+        int result = 0;
+        for (int i=0;i<rows;++i) {
+            int tmp = 0;
+            for (int j=0;j<cols;++j) {
+                tmp += A[i][j] * Math.pow(2,cols-1-j);
+            }
+            result += tmp;
+        }
+        return result;
+    }
+
+    class kClosest {
+        double dis;
+        int[] point;
+
+        public kClosest(double dis, int[] point) {
+            this.dis = dis;
+            this.point = point;
+        }
+
+        public double getDis() {
+            return dis;
+        }
+
+        public void setDis(double dis) {
+            this.dis = dis;
+        }
+
+        public int[] getPoint() {
+            return point;
+        }
+
+        public void setPoint(int[] point) {
+            this.point = point;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof kClosest)) return false;
+            kClosest kClosest = (kClosest) o;
+            return Double.compare(kClosest.getDis(), getDis()) == 0 &&
+                    Arrays.equals(getPoint(), kClosest.getPoint());
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(getDis());
+            result = 31 * result + Arrays.hashCode(getPoint());
+            return result;
+        }
+    }
+
     static class test {
         private Integer a;
         private String b;
@@ -1860,10 +2348,97 @@ public class Solution {
         public void setB(String b) {
             this.b = b;
         }
+
+        public test() {
+        }
+
+        public test(Integer a, String b) {
+            this.a = a;
+            this.b = b;
+        }
+    }
+
+    /**
+     * 小数字符串 转 数值类型
+     * 如："3.14" -> 3.14
+     * @param str
+     */
+    public double stringToDouble(String str) {
+        double result = 0;
+        if (StringUtils.isEmpty(str)) return result;
+        char[] chars = str.toCharArray();
+        int length = chars.length;
+        if (chars[0]=='.' || chars[length-1]=='.') return result;
+
+        int index = 0;
+        boolean positive = true;
+        switch (chars[0]) {
+            case '+':
+                ++index;
+                positive = true;
+                break;
+            case '-':
+                ++index;
+                positive = false;
+                break;
+            default:break;
+        }
+
+        for (;index<length;++index) {
+            if (chars[index]!='.') {
+                result = result*10 + (chars[index]-'0');
+            } else break;
+        }
+        index = index+1;
+        int dotNum = 1;
+        for (;index<length;++index) {
+            result = result*10 + (chars[index]-'0');
+            dotNum *= 10;
+        }
+        result = result/dotNum;
+        if (positive) return result;
+        else return -result;
     }
 
     public static void main(String[] args) {
         Solution solution = new Solution();
+        double v = solution.stringToDouble("3.14");
+
+//        solution.matrixScore(new int[][]{{0,0,1,1},{1,0,1,0},{1,1,0,0}});
+//        solution.matrixScore(new int[][]{{1,1},{1,1},{0,1}});
+        solution.matrixScore(new int[][]{{0,1},{0,1},{0,1},{0,0}});
+
+        solution.searchRange(new int[]{1,5},5);
+        List<test> testArrayList = new ArrayList<>();
+        testArrayList.add(new test(1,"3"));
+        testArrayList.add(new test(2,"2"));
+        testArrayList.add(new test(3,"1"));
+
+        String format = MessageFormat.format("{0}-{1}[{2}]", 1, 2, 3);
+        System.out.println(format);
+        testArrayList.parallelStream().filter(o -> o.getA().intValue() == 5).forEach(t->{
+            System.out.println("----");
+        });
+
+        String s = testArrayList.toString();
+        System.out.println(s);
+        boolean equals = "7".equals(null);
+
+        List<test> collect1 = testArrayList.parallelStream().sorted((o1, o2) -> (o2.getA() - o1.getA())).collect(Collectors.toList());
+        Optional<test> first = testArrayList.parallelStream().sorted((o1, o2) -> (o2.getA() - o1.getA())).filter(o -> {
+            return String.valueOf(o.getA()).equals(o.getB());
+        }).findFirst();
+        if (first.isPresent()) {
+            System.out.println("present");
+        } else {
+            System.out.println("no present");
+        }
+
+        solution.kClosest(new int[][]{{1,3},{-2,2}},1);
+
+        int i1 = solution.countRangeSum(new int[]{-2147483647,0,-2147483647,2147483647}, -564, 3864);
+        System.out.println(i1);
+
         List<String> list = Arrays.asList(new String[]{"12", "23"});
 
         ListNode node = new ListNode(1);

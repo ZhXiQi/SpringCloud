@@ -23,21 +23,21 @@ public interface AttachServer {
     @PostMapping("")
     Object uploadFile(
             @RequestPart(value = "file") MultipartFile files,
-            @RequestParam(required = false, defaultValue = "filoink") String bucketName,
+            @RequestParam(required = false, defaultValue = "xxx") String bucketName,
             @RequestParam(required = false) Integer type
     );
 
     @PostMapping("/server")
     String uploadFileServer(
             @RequestPart(value = "file") MultipartFile files,
-            @RequestParam(required = false, defaultValue = "filoink") String folder,
+            @RequestParam(required = false, defaultValue = "xxx") String folder,
             @RequestParam(required = false) Integer type
     );
 
     @PostMapping("/all")
     Object uploadFileAll(
             @RequestPart(value = "file") MultipartFile files,
-            @RequestParam(required = false, defaultValue = "filoink") String folder,
+            @RequestParam(required = false, defaultValue = "xxx") String folder,
             @RequestParam(required = false) Integer type
     );
 

@@ -1,8 +1,6 @@
 package com.springboot.core.common.response;
 
-/**
- * Created by superlee on 2017/11/6.
- */
+
 public enum Code {
     //通用部分
     UNDEFINED(-1, "未定义"),
@@ -36,9 +34,9 @@ public enum Code {
 
     FLORESCENCE_FALL(4001, "取证失败"),
 
-    TX_Extra_set(8001, "extra上链失败"),
-    TX_Extra_get(8002, "extra链上查询失败"),
-    BLOCK_CHAIN_ERROR(8003,"区块链出了点小差"),
+    TX_Extra_set(8001, "失败"),
+    TX_Extra_get(8002, "失败"),
+    BLOCK_CHAIN_ERROR(8003,"出了点小差"),
     TRANS_NOT_EXIST(8004,"交易不存在"),
     TX_STATUS_ERROR(8005,"当前交易状态不允许进行此操作"),
 

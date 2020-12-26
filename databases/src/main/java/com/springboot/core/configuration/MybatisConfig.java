@@ -4,10 +4,12 @@ import com.springboot.core.handler.LocalDateTimeTypeHandler;
 import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.ibatis.plugin.Interceptor;
 import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -87,5 +89,15 @@ public class MybatisConfig {
 //        sqlSessionFactoryBean.setPlugins(new Interceptor[]{  });
 
         return sqlSessionFactoryBean;
+    }
+
+    @Bean
+    @Order
+    public MapperScannerConfigurer mapperScannerConfigurer() {
+        MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
+        //自动建表插件，不推荐使用
+        mapperScannerConfigurer.setBasePackage("com.xxx.dao.mapper.*;com.gitee.sunchenbin.mybatis.actable.dao.*");
+        mapperScannerConfigurer.setSqlSessionFactoryBeanName("sqlSessionFactory");
+        return mapperScannerConfigurer;
     }
 }

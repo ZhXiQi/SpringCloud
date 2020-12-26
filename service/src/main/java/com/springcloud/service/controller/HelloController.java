@@ -20,13 +20,14 @@ public class HelloController {
      * @return
      */
     @RequestMapping(value = "/hello")
-    public String hello(){
-        return "hello";
+    public String hello() throws Exception {
+        throw new Exception();
+//        return "hello";
     }
 
     @GetMapping(value = "/hi")
     public String hello2(){
-        return "hello";
+        return "hi";
     }
 
 

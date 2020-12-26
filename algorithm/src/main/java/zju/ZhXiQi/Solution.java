@@ -387,31 +387,36 @@ public class Solution {
         return Math.max(left, right)+1;
     }
 
-    public List<List<Integer>> generate(int numRows) {
-        List<List<Integer>> result = new ArrayList<>();
-        for (int i=0;i<numRows;++i){
-            switch (i){
-                case 0:
-                    result.add(new ArrayList<Integer>(){{add(1);}});
-                    break;
-                case 1:
-                    result.add(new ArrayList<Integer>(){{add(1);add(1);}});
-                    break;
-                default:
-                    List<Integer> list = new ArrayList<>();
-                    list.add(1);
-                    for(int j=1;j<i;++j){
-                        List<Integer> pre = result.get(i-1);
-                        list.add(pre.get(j-1)+pre.get(j));
-                    }
-                    list.add(1);
-                    result.add(list);
-                    break;
-            }
-        }
-
-        return result;
-    }
+    /**
+     * 杨辉三角
+     * @param num
+     * @return
+     */
+//    public List<List<Integer>> generate(int numRows) {
+//        List<List<Integer>> result = new ArrayList<>();
+//        for (int i=0;i<numRows;++i){
+//            switch (i){
+//                case 0:
+//                    result.add(new ArrayList<Integer>(){{add(1);}});
+//                    break;
+//                case 1:
+//                    result.add(new ArrayList<Integer>(){{add(1);add(1);}});
+//                    break;
+//                default:
+//                    List<Integer> list = new ArrayList<>();
+//                    list.add(1);
+//                    for(int j=1;j<i;++j){
+//                        List<Integer> pre = result.get(i-1);
+//                        list.add(pre.get(j-1)+pre.get(j));
+//                    }
+//                    list.add(1);
+//                    result.add(list);
+//                    break;
+//            }
+//        }
+//
+//        return result;
+//    }
 
     public String intToRoman(int num) {
         if (num == 0) {
@@ -776,10 +781,8 @@ public class Solution {
      */
     public int countPrimes(int n) {
 
-        Integer.valueOf(1);
-
-
         int result = 0;
+        //审题，是小于n还是可以等于n
         for(int i=2;i<=n;++i){
             int v = (int)Math.sqrt(i);
             boolean flag = true;
@@ -795,7 +798,78 @@ public class Solution {
         return result;
     }
 
+    /**
+     * 埃式筛 求素数个数
+     * @param n
+     * @return
+     */
+    public int countPrimes2(int n) {
+
+        boolean[] isPrimes = new boolean[n];
+        Arrays.fill(isPrimes,true);
+        // 从 2 开始枚举到 sqrt(n)。
+        for (int i=2;i*i<n;++i) {
+            // 如果当前是素数
+            if (isPrimes[i]) {
+                // 就把从 i*i 开始，i 的所有倍数都设置为 false。
+                for (int j=i*i;j<n;j+=i) isPrimes[j] = false;
+            }
+        }
+        int result = 0;
+        for (int i=2;i<n;++i) if (isPrimes[i]) ++result;
+        return result;
+    }
+
+    public int countPrimes3(int n) {
+
+        boolean[] isPrimes = new boolean[n];
+        Arrays.fill(isPrimes,true);
+        int result = 0;
+        for (int i=2;i<n;++i) {
+            if (isPrimes[i]) {
+                ++result;
+                for (int j=i+i;j<n;j+=i) isPrimes[j] = false;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 杨辉三角
+     * @param numRows
+     * @return
+     */
+    public List<List<Integer>> generate(int numRows) {
+        List<Integer> one = new ArrayList<Integer>(){{add(1);}};
+        List<Integer> two = new ArrayList<Integer>(){{add(1);add(1);}};
+        List<List<Integer>> result = new ArrayList<>();
+        if (numRows==0) return result;
+        if (numRows == 1) {
+            result.add(one);
+            return result;
+        }
+        if (numRows == 2) {
+            result.add(one);
+            result.add(two);
+            return result;
+        }
+        result.add(one);
+        result.add(two);
+        for (int i=2;i<numRows;++i) {
+            List<Integer> tmp = new ArrayList<>();
+            tmp.add(1);
+            List<Integer> pre = result.get(i - 1);
+            for (int j=1;j<i;++j) {
+                tmp.add(pre.get(j-1)+pre.get(j));
+            }
+            tmp.add(1);
+            result.add(tmp);
+        }
+        return result;
+    }
+
     public boolean isIsomorphic(String s, String t) {
+
         if(s==null && t==null) return true;
         if(s==null || t==null) return false;
         int len = s.length();
@@ -2037,7 +2111,7 @@ public class Solution {
     public static void main(String[] args) {
 
         Solution solution = new Solution();
-        solution.firstUniqChar("leetcode");
+        /*solution.firstUniqChar("leetcode");
 
         solution.printNumbers(1);
 
@@ -2118,7 +2192,7 @@ public class Solution {
 
         solution.isIsomorphic("foo","bar");
 
-        int i3 = solution.countPrimes(10);
+        int i3 = solution.countPrimes(3);
         System.out.println(i3);
 
         solution.rob(new int[]{2,1,1,2});
@@ -2174,7 +2248,7 @@ public class Solution {
 
 
         String s = solution.intToRoman(4);
-        System.out.println(s);
+        System.out.println(s);*/
 
         List<List<Integer>> generate = solution.generate(5);
         System.out.println(generate);

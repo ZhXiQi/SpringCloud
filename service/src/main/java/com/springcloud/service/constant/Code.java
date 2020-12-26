@@ -6,6 +6,8 @@ package com.springcloud.service.constant;
  * @date 2020/5/27 15:56
  */
 public enum Code {
+    SUCCESS(0,"成功"),
+    ERROR(-1,"失败"),
     PARAMETER_ERROR(0000,"参数错误"),
     UNKNOWN_ABNORMAL(1111,"未知异常"),
     VALID_ERROR(2222,"校验异常"),

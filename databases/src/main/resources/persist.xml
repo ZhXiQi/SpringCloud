@@ -10,6 +10,13 @@
            http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
            http://www.springframework.org/schema/context
            http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- xml方式配置包扫描路径 -->
+    <context:component-scan base-package="com.springboot.core">
+        <!-- 在基本包路径下，排除指定注解的类作为bean注入 -->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+    </context:component-scan>
+
     <!-- 配置数据源 -->
     <bean id="dataSource"
           class="org.springframework.jdbc.datasource.DriverManagerDataSource">
@@ -45,6 +52,15 @@
             </props>
         </property>
     </bean>-->
+
+    <!-- aop切面自动代理设置
+     Spring与SpringMVC是2个不同的父子容器，
+     @Aspect如果被spring容器加载的话，而@Controller注解的这些类的实例化以及注入却是由SpringMVC来完成。
+     @Aspect如果被spring容器加载的时候，可能Spring MVC容器还未初始化，Controller类还未初始化，所以无法正常织入。
+     -->
+    <aop:aspectj-autoproxy proxy-target-class="true" expose-proxy="true" />
+    <!-- xml方式配置事物管理器 -->
+    <tx:annotation-driven transaction-manager="txManager" proxy-target-class="true" />
     <!-- 使用tx/aop来配置 -->
     <aop:config>
         <!-- 通过aop定义事务增强切面 -->
@@ -58,9 +74,16 @@
     <tx:advice id="txAdvice" transaction-manager="txManager">
         <!-- 事务属性定义 -->
         <tx:attributes>
-            <tx:method name="get*" read-only="false" />
-            <tx:method name="add*" rollback-for="Exception" />
             <tx:method name="del*" />
+            <tx:method name="delete*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception" no-rollback-for="java.lang.RuntimeException"/>
+            <tx:method name="add*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception" />
+            <tx:method name="insert*" propagation="REQUIRED" isolation="SERIALIZABLE" read-only="false" rollback-for="java.lang.Exception" />
+            <tx:method name="update*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception" />
+            <tx:method name="modify*" propagation="REQUIRES_NEW" read-only="false" rollback-for="java.lang.Exception" />
+            <tx:method name="find*" propagation="SUPPORTS"/>
+            <tx:method name="get*" propagation="SUPPORTS" isolation="SERIALIZABLE" read-only="false" />
+            <tx:method name="select*" propagation="REQUIRED" isolation="SERIALIZABLE"/>
         </tx:attributes>
     </tx:advice>
+
 </beans>

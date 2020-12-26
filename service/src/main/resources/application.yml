@@ -1,3 +1,5 @@
 spring:
   profiles:
     active: learn
+aes:
+  key: 123
