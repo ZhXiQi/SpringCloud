@@ -21,9 +21,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +38,71 @@ import java.util.stream.Stream;
  * @date 2020/7/4 00:18
  */
 public class Solution {
+
+    /**
+     * 非递归前序遍历
+     */
+    public void preOrderN(TreeNode root) {
+        Deque<TreeNode> q = new ArrayDeque<>();
+        TreeNode p = root;
+        while (p!=null || !q.isEmpty()) {
+            while (p!=null) {
+                System.out.println(p.val);
+                q.push(p);
+                p = p.left;
+            }
+            if (!q.isEmpty()) {
+                p = q.pop();
+                p = p.right;
+            }
+        }
+    }
+
+    /**
+     * 非递归中序遍历
+     */
+    public void inOrderN(TreeNode root) {
+        Deque<TreeNode> q = new ArrayDeque<>();
+        TreeNode p = root;
+        while (p!=null || !q.isEmpty()) {
+            while (p!=null) {
+                q.push(p);
+                p = p.left;
+            }
+            if (!q.isEmpty()) {
+                p = q.pop();
+                System.out.println(p.val);
+                p = p.right;
+            }
+        }
+    }
+
+    /**
+     * 非递归后序遍历
+     */
+    public void postOrderN(TreeNode root) {
+        Deque<TreeNode> q = new ArrayDeque<>();
+        TreeNode p = root;
+        TreeNode last = null;
+        while (p != null || !q.isEmpty()) {
+            while (p != null) {
+                q.push(p);
+                p = p.left;
+            }
+            p = q.peek();
+            if (p.right == null || p.right == last) {
+                //访问
+                System.out.println(p.val);
+                //记录上一个访问的节点，用于判断"访问根节点之前，右子树是否已经访问过"
+                q.pop();
+                last = p;
+                //表示不需要转向，继续弹栈
+                p = null;
+            } else {
+                p = p.right;
+            }
+        }
+    }
 
     public static class ListNode {
         int val;
@@ -74,7 +142,7 @@ public class Solution {
     }
 
     /* 反转链表 */
-    private ListNode reverseLinked(ListNode head){
+    private ListNode reverseLinked(ListNode head) {
         ListNode cur = head;
         ListNode prev = null;
         while(cur != null){
@@ -90,7 +158,7 @@ public class Solution {
     private ListNode findMidNode(ListNode head){
         ListNode fast = head;
         ListNode low = head;
-        while(fast.next != null && fast.next.next != null){
+        while(fast != null && fast.next != null){
             fast = fast.next.next;
             low = low.next;
         }
@@ -320,13 +388,13 @@ public class Solution {
     }
 
     /**
-     * 滑动窗口的最大值
+     * 239.滑动窗口的最大值
      * @param nums
      * @param k
      * @return
      */
     public int[] maxSlidingWindow(int[] nums, int k) {
-        if (nums==null || nums.length==0) return new int[0];
+        /*if (nums==null || nums.length==0) return new int[0];
         List<Integer> result = new ArrayList<>();
         int length = nums.length;
         int left=0,right=0;
@@ -345,7 +413,74 @@ public class Solution {
         for (int i=0;i<size;++i){
             ints[i] = result.get(i);
         }
-        return ints;
+        return ints;*/
+
+        /*
+        //自己的思路 个别数据超时
+        if (nums==null || nums.length==0) return new int[0];
+        int length = nums.length;
+        List<Integer> result = new ArrayList<>();
+        int idx = 0;
+        while (idx <= length - k) {
+            int maxValue = Integer.MIN_VALUE;
+            for (int i=idx;i<idx+k;++i) {
+                maxValue = Math.max(maxValue,nums[i]);
+            }
+            ++idx;
+            result.add(maxValue);
+        }
+        int size = result.size();
+        int[] ints = new int[size];
+        for (int i=0;i<size;++i) {
+            ints[i] = result.get(i);
+        }
+        return ints;*/
+        /**
+         * 思路： 遍历数组 L R 为滑窗左右边界 只增不减
+         *         双向队列保存当前窗口中最大的值的数组下标 双向队列中的数从大到小排序，
+         *         新进来的数如果大于等于队列中的数 则将这些数弹出 再添加
+         *         当R-L+1=k 时 滑窗大小确定 每次R前进一步L也前进一步 保证此时滑窗中最大值的
+         *         数组下标在[L，R]中，并将当前最大值记录
+         *   举例： nums[1，3，-1，-3，5，3，6，7] k=3
+         *      1：L=0，R=0，队列【0】 R-L+1 < k
+         *             队列代表值【1】
+         *      2: L=0,R=1, 队列【1】 R-L+1 < k
+         *             队列代表值【3】
+         *      解释：当前数为3 队列中的数为【1】 要保证队列中的数从大到小 弹出1 加入3
+         *           但队列中保存的是值对应的数组下标 所以队列为【1】 窗口长度为2 不添加记录
+         *      3: L=0,R=2, 队列【1，2】 R-L+1 = k ,result={3}
+         *             队列代表值【3，-1】
+         *      解释：当前数为-1 队列中的数为【3】 比队列尾值小 直接加入 队列为【3，-1】
+         *           窗口长度为3 添加记录记录为队首元素对应的值 result[0]=3
+         *      4: L=1,R=3, 队列【1，2，3】 R-L+1 = k ,result={3，3}
+         *             队列代表值【3，-1,-3】
+         *      解释：当前数为-3 队列中的数为【3，-1】 比队列尾值小 直接加入 队列为【3，-1，-3】
+         *           窗口长度为4 要保证窗口大小为3 L+1=1 此时队首元素下标为1 没有失效
+         *           添加记录记录为队首元素对应的值 result[1]=3
+         *      5: L=2,R=4, 队列【4】 R-L+1 = k ,result={3，3，5}
+         *             队列代表值【5】
+         *      解释：当前数为5 队列中的数为【3，-1，-3】 保证从大到小 依次弹出添加 队列为【5】
+         *           窗口长度为4 要保证窗口大小为3 L+1=2 此时队首元素下标为4 没有失效
+         *           添加记录记录为队首元素对应的值 result[2]=5
+         *     依次类推 如果队首元素小于L说明此时值失效 需要弹出
+         */
+        if(nums==null||nums.length<2) return nums;
+        // 双向队列 保存当前窗口最大值的数组位置 保证队列中数组位置的数按从大到小排序
+        LinkedList<Integer> list = new LinkedList();
+        int length = nums.length;
+        // 结果数组
+        int[] result = new int[length-k+1];
+        for(int i=0;i<length;i++){
+            // 保证从大到小 如果前面数小 弹出
+            while(!list.isEmpty() && nums[list.peekLast()]<=nums[i]) list.pollLast();
+            // 添加当前值对应的数组下标
+            list.addLast(i);
+            // 初始化窗口 等到窗口长度为k时 下次移动在删除过期数值
+            if(list.peek()<=i-k) list.poll();
+            // 窗口长度为k时 再保存当前窗口中最大值
+            if(i-k+1>=0) result[i-k+1] = nums[list.peek()];
+        }
+        return result;
     }
 
     /**
@@ -374,16 +509,22 @@ public class Solution {
     }
 
     /**
+     * 面试题 17.01. 不用加号的加法
      * 位运算模拟加减法
-     * ^ 亦或 ----相当于 无进位的求和， 想象10进制下的模拟情况：（如:19+1=20；无进位求和就是10，而非20；因为它不管进位情况）
+     * ^ 亦或 ----相当于 无进位的求和， 想象10进制下的模拟情况：（如:19+1=20；00010011 ^ 00000001 = 00010010(18)无进位求和就是10，而非20；因为它不管进位情况）
      * & 与  ----相当于求每位的进位数， 先看定义：1&1=1；1&0=0；0&0=0；即都为1的时候才为1，正好可以模拟进位数的情况,还是想象10进制下模拟情况：
-     *      （9+1=10，如果是用&的思路来处理，则9+1得到的进位数为1，而不是10，所以要用<<1向左再移动一位，这样就变为10了）；
-     *
+     *      （9+1=10，1001 & 0001 = 0001 如果是用&的思路来处理，则9+1得到的进位数为1，而不是10，所以要用<<1向左再移动一位，这样就变为10了）；
+     * 18 + 2 = 20 -> 00010010 & 00000010 = 00000010(2)  00010010 ^ 00000010 = 00010000(16)
+     * 19 + 1 = 20 -> 00010011 & 00000001 = 00000001(1)  00010011 ^ 00000001 = 00010010(18)
      * 这样公式就是：（a^b) + ((a&b)<<1) 即：每次无进位求和 + 每次得到的进位数--------我们需要不断重复这个过程，直到进位数为0为止；
      *
      * << 左移，不分正负数
      * >> 右移，分正负数
      * >>> 无符号右移
+     *
+     * 18 + 2 = 00010010 + 00000010 = 00010100
+     *
+     *
      * @param a
      * @param b
      * @return
@@ -465,11 +606,20 @@ public class Solution {
         Node random;
         Node left;
         Node right;
+        public List<Node> children;
+
+        public Node() {
+        }
 
         public Node(int val) {
             this.val = val;
             this.next = null;
             this.random = null;
+        }
+
+        public Node(int _val, List<Node> children) {
+            this.val = _val;
+            this.children = children;
         }
     }
 
@@ -583,40 +733,6 @@ public class Solution {
      * @param prices
      * @return
      */
-    public int maxProfit(int[] prices) {
-        if (prices==null || prices.length==0) return 0;
-        /*
-        int length = prices.length;
-        int left = 0,right = 1;
-        //股票的最大利润
-        int maxProfit = 0;
-        //最小的买入值
-        int minLeft = prices[0];
-        while (right<length) {
-            int priceLeft = prices[left];
-            if (priceLeft<minLeft) {
-                minLeft = priceLeft;
-            }
-            ++left;
-            int profit = prices[right] - minLeft;
-            if (profit>maxProfit) maxProfit = profit;
-            ++right;
-        }
-        return maxProfit;
-        */
-        int length = prices.length;
-        int[] dp = new int[length];
-        dp[0] = 0;
-        int min = prices[0];
-        for (int i=1;i<length;++i) {
-            int price = prices[i];
-            //记录历史最低价
-            if (price<min) min = price;
-            //取 前i日最大利润和当前价-历史最低价 的最大值
-            dp[i] = Math.max(dp[i-1],prices[i]-min);
-        }
-        return dp[length-1];
-    }
 
     /**
      * 股票的最大价值II
@@ -998,13 +1114,12 @@ public class Solution {
         if (s==null) return 0;
         int len = s.length();
         int result = 0;
-        /*
         //双指针（滑动窗口）法
         Set<Character> set = new HashSet<>();
         for(int l=0,r=0;r<len;++r) {
             char c = s.charAt(r);
             while(set.contains(c)) {
-                //缩小滑动窗口左边边界
+                //缩小滑动窗口左边边界，因为只要求最大的个数，不要求不重复的字符串是啥，所以只要有重复，窗口里的字符数量扣除一个即可
                 set.remove(s.charAt(l));
                 ++l;
             }
@@ -1012,8 +1127,6 @@ public class Solution {
             result = Math.max(result,r-l+1);
         }
         return result;
-        */
-        return 0;
     }
 
     /**
@@ -2400,8 +2513,1068 @@ public class Solution {
         else return -result;
     }
 
+    /**
+     * 842.将数组拆分成斐波那契序列
+     * @param S
+     * @return
+     */
+    public List<Integer> splitIntoFibonacci(String S) {
+
+        return null;
+    }
+
+    /**
+     * 青蛙跳台阶问题
+     * 青蛙只能跳一步或两步
+     * @param n
+     * @return
+     */
+    public int numWays(int n) {
+        switch (n) {
+            case 0:
+            case 1: return 1;
+            case 2: return 2;
+            default:break;
+        }
+        int[] dp = new int[n+1];
+        dp[0] = 1;
+        dp[1] = 1;
+        dp[2] = 2;
+        for (int i=3;i<=n;++i) {
+            //第i个台阶的走法 = 第 i-1 个台阶的走法(最后只剩一步) + 第 i-2 个台阶的走法(最后只剩两步)之和
+            dp[i] = (dp[i-1] + dp[i-2])%1000000007;
+        }
+        return dp[n];
+    }
+
+    /**
+     * 1704.判断字符串的两半是否相似
+     * 包含元音个数是否相同
+     * 思路：直接设置两个index，一个在头，一个在尾，碰到对应的加数量，就是双指针
+     * @param s
+     * @return
+     */
+    public boolean halvesAreAlike(String s) {
+        if (s==null) return true;
+        if (s.trim().equals("")) return true;
+        int length = s.length();
+        if (length%2!=0) return false;
+        int halfLen = length / 2;
+        int pre = 0,sub = 0;
+        for (int i=0;i<length;++i) {
+            char c = s.charAt(i);
+            if (i<halfLen) {
+                //前半
+                pre += halves(c);
+            } else {
+                //后半
+                sub += halves(c);
+            }
+        }
+        return pre==sub;
+    }
+    public int halves(char c) {
+        switch (c) {
+            case 'a': case 'e': case 'i': case 'o': case 'u': case 'A': case 'E': case 'I': case 'O': case 'U':
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * 1046. 最后一块石头的重量
+     * 有一堆石头，每块石头的重量都是正整数。
+     *
+     * 每一回合，从中选出两块 最重的 石头，然后将它们一起粉碎。假设石头的重量分别为 x 和 y，且 x <= y。那么粉碎的可能结果如下：
+     *
+     * 如果 x == y，那么两块石头都会被完全粉碎；
+     * 如果 x != y，那么重量为 x 的石头将会完全粉碎，而重量为 y 的石头新重量为 y-x。
+     * 最后，最多只会剩下一块石头。返回此石头的重量。如果没有石头剩下，就返回 0。
+     *
+     * @param stones
+     * @return
+     */
+    public int lastStoneWeight(int[] stones) {
+        if (stones==null || stones.length==0) return 0;
+        Arrays.sort(stones);
+        int length = stones.length;
+        while (length>=2) {
+            int i = stones[length - 1] - stones[length - 2];
+            if (i==0) {
+                length = length - 2;
+                stones[length] = i;
+            } else {
+                stones[length-2] = i;
+                length = length - 1;
+            }
+            Arrays.sort(stones,0,length);
+        }
+
+        return stones[0];
+    }
+
+    /**
+     * 86.分隔链表
+     * @param head
+     * @param x
+     * @return
+     */
+    public ListNode partition(ListNode head, int x) {
+        if (head==null) return head;
+
+        ListNode first = new ListNode(0);
+        ListNode second = new ListNode(0);
+        ListNode firstTail = first;
+        ListNode secondTail = second;
+        while (head!=null) {
+            if (head.val < x) {
+                //如果当前节点的值小于x，则把当前节点挂到第一个链表后面
+                firstTail = firstTail.next = head;
+            } else {
+                //否则挂到第二个链表后面
+                secondTail = secondTail.next = head;
+            }
+            head = head.next;
+        }
+        //拼接链表
+        firstTail.next = second.next;
+        secondTail.next = null;
+        return first.next;
+
+        /*
+        //蠢办法
+        List<Integer> first = new ArrayList<>();
+        List<Integer> second = new ArrayList<>();
+        while (head!=null) {
+            if (head.val < x) first.add(head.val);
+            else second.add(head.val);
+            head = head.next;
+        }
+        ListNode result = new ListNode(0);
+        ListNode res = result;
+        int firstSize = first.size();
+        for (int i=0;i<firstSize;++i) {
+            ListNode node = new ListNode(first.get(i));
+            result.next = node;
+            result = result.next;
+        }
+        int secondSize = second.size();
+        for (int i=0;i<secondSize;++i) {
+            ListNode node = new ListNode(second.get(i));
+            result.next = node;
+            result = result.next;
+        }
+        return res.next;
+        */
+    }
+
+    /**
+     * 509.斐波那契数
+     * @param n
+     * @return
+     */
+    public int fib(int n) {
+        switch(n) {
+            case 0:
+                return 0;
+            case 1:
+                return 1;
+            default:
+                return fib(n-1) + fib(n-2);
+        }
+        /*
+        //更高效版本
+        if(n==0) return 0;
+        int[] dp = new int[n+1];
+        dp[0] = 0;
+        dp[1] = 1;
+        for(int i=2;i<=n;++i) {
+            dp[i] = dp[i-1] + dp[i-2];
+        }
+        return dp[n];
+        */
+    }
+
+    /**
+     * 830. 较大分组的位置
+     * 滑动窗口、双指针
+     * @param s
+     * @return
+     */
+    public List<List<Integer>> largeGroupPositions(String s) {
+        List<List<Integer>> result = new ArrayList<>();
+        if(s==null || s.length()==0) return result;
+        int len = s.length();
+        /*
+        //滑动窗口思想
+        Set<Character> set = new HashSet<>();
+        int count = 1;
+        set.add(s.charAt(0));
+        for (int i=1;i<len;++i) {
+            char tmp = s.charAt(i);
+            if (set.contains(tmp)) {
+                ++count;
+            } else {
+                if (count >= 3) {
+                    int left = i - count;
+                    int right = i - 1;
+                    result.add(new ArrayList<Integer>(){{add(left);add(right);}});
+                }
+                set.clear();
+                set.add(tmp);
+                count = 1;
+            }
+        }
+        if (count>=3) {
+            int left = len - count;
+            int right = len-1;
+            result.add(new ArrayList<Integer>(){{add(left);add(right);}});
+        }
+        */
+        //双指针
+        int left = 0,right = 1;
+        while (right < len) {
+            if (s.charAt(left) == s.charAt(right)) {
+                ++right;
+            } else {
+                if (right - left >= 3) {
+                    int tmpLeft = left;
+                    int tmpRight = right-1;
+                    result.add(new ArrayList<Integer>(){{add(tmpLeft);add(tmpRight);}});
+                }
+                left = right;
+                ++right;
+            }
+        }
+        if (right - left >= 3) {
+            int tmpLeft = left;
+            int tmpRight = right-1;
+            result.add(new ArrayList<Integer>(){{add(tmpLeft);add(tmpRight);}});
+        }
+        return result;
+    }
+
+    /**
+     * 通配符匹配
+     * @param s
+     * @param p
+     * @return
+     */
+    public boolean isMatch(String s, String p) {
+        //match为 * 号匹配的个数
+        int i=0,j=0,start = -1,match = 0;
+        int lenS = s.length();
+        int lenP = p.length();
+        while (i<lenS) {
+            // 一对一匹配,匹配成功一起移
+            if (j < lenP && (s.charAt(i) == p.charAt(j) || p.charAt(j) == '?')) {
+                ++i;
+                ++j;
+            //记录p的"*"的位置,还有s的位置
+            } else if (j < lenP && p.charAt(j) == '*'){
+                start = j;
+                match = i;
+                ++j;
+            //j 回到 记录的下一个位置
+            //match 更新下一个位置
+            //这不代表用*匹配一个字符
+            } else if (start != -1) {
+                j = start + 1;
+                match += 1;
+                i = match;
+            } else return false;
+        }
+        //将多余的 * 直接匹配空串
+        while (j < lenP) {
+            if (p.charAt(j) != '*') return false;
+            ++j;
+        }
+        return true;
+    }
+
+    /**
+     * 189.旋转数组
+     * @param nums
+     * @param k
+     */
+    public void rotate(int[] nums, int k) {
+        int length = nums.length;
+        int l = k % length;
+        //法一 双重循环
+        for (int i=0;i<l;++i) {
+            //每次都取最后一个
+            int tmp = nums[length-1];
+            //数组整体后移
+            for (int j=length-1;j>0;--j) {
+                nums[j] = nums[j-1];
+            }
+            //最后一个放到最前
+            nums[0] = tmp;
+        }
+
+        //法二，翻转
+        reverse(nums,0,length-1);
+        reverse(nums,0,l-1);
+        reverse(nums,l,length-1);
+    }
+
+    /**
+     * 翻转数组
+     * @param nums
+     * @param start
+     * @param end
+     */
+    public void reverse(int[] nums, int start, int end) {
+        while (start < end) {
+            int tmp = nums[start];
+            nums[start++] = nums[end];
+            nums[end--] = tmp;
+        }
+    }
+
+    /**
+     * 559. N叉树的最大深度
+     * DFS/BFS皆可
+     * @param root
+     * @return
+     */
+    public int maxDepth(Node root) {
+
+        /*
+        //DFS
+        if (root==null) return 0;
+        List<Node> children = root.children;
+        int maxDepth = 0;
+        if (children==null || children.size()==0) return 1;
+        int len = children.size();
+        for (int i=0;i<len;++i) {
+            maxDepth = Math.max(maxDepth,maxDepth(children.get(i)));
+        }
+        return maxDepth+1;
+        */
+
+        //BFS
+        if (root == null) return 0;
+        List<Node> children = root.children;
+        int maxDepth = 0;
+        if (children==null || children.size()==0) return 1;
+        Deque<Node> queue = new LinkedList<>();
+        queue.addLast(root);
+        while (!queue.isEmpty()) {
+            ++maxDepth;
+            //将这一层的节点都加进去
+            int size = queue.size();
+            while (size > 0) {
+                Node first = queue.pollFirst();
+                List<Node> nodes = first.children;
+                if (nodes!=null && nodes.size()>0) {
+                    for (int i=0;i<nodes.size();++i) queue.addLast(nodes.get(i));
+                }
+                --size;
+            }
+        }
+        return maxDepth;
+    }
+
+    /**
+     * 二叉树深度
+     * DFS/BFS
+     * @param root
+     * @return
+     */
+    public int maxDepth(TreeNode root) {
+        /*
+        //DFS
+        if (root==null) return 0;
+        int maxDepth = 0;
+        maxDepth = Math.max(maxDepth,Math.max(maxDepth(root.left),maxDepth(root.right)));
+        return maxDepth + 1;
+        */
+
+        //BFS
+        if (root==null) return 0;
+        int maxDepth = 0;
+        Deque<TreeNode> deque = new LinkedList<>();
+        deque.addLast(root);
+        while (!deque.isEmpty()) {
+            int size = deque.size();
+            ++maxDepth;
+            while (size > 0) {
+                TreeNode treeNode = deque.pollFirst();
+                if (treeNode.left!=null) deque.addLast(treeNode.left);
+                if (treeNode.right!=null) deque.addLast(treeNode.right);
+                --size;
+            }
+        }
+        return maxDepth;
+    }
+
+    /**
+     * 64.最小路径合
+     * 动态规划
+     * 限制：每次只能向下或者向右移动一步
+     * @param grid
+     * @return
+     */
+    public int minPathSum(int[][] grid) {
+        for(int i = 0; i < grid.length; i++) {
+            for(int j = 0; j < grid[0].length; j++) {
+                if(i == 0 && j == 0) continue;
+                else if(i == 0)  grid[i][j] = grid[i][j - 1] + grid[i][j];
+                else if(j == 0)  grid[i][j] = grid[i - 1][j] + grid[i][j];
+                else grid[i][j] = Math.min(grid[i - 1][j], grid[i][j - 1]) + grid[i][j];
+            }
+        }
+        return grid[grid.length - 1][grid[0].length - 1];
+    }
+
+    /**
+     * 部分排序
+     * 单调递增的
+     * @param array
+     * @return
+     */
+    public int[] subSort(int[] array) {
+        int len = array.length;
+        int max = Integer.MIN_VALUE,min = Integer.MAX_VALUE;
+        int l = -1, r = -1;
+        //寻找最靠右的那个数（满足左边存在大于它的数）
+        for (int i=0;i<len;++i) {
+            if (array[i] < max) r = i;
+            else max = array[i];
+        }
+        //寻找最靠左的那个数（满足右边存在小于它的数）
+        for (int i=len-1; i>=0; --i) {
+            if (array[i] > min) l = i;
+            else min = array[i];
+        }
+        return new int[]{l,r};
+    }
+
+    /**
+     * 汇总区间
+     * @param nums
+     * @return
+     */
+    public List<String> summaryRanges(int[] nums) {
+        List<String> result = new ArrayList<>();
+        if (nums==null) return result;
+        int len = nums.length;
+        if (len==0) return result;
+        if (len==1) {
+            result.add(String.valueOf(nums[0]));
+            return result;
+        }
+        int idx = nums[0];
+        Integer left = null,right = null;
+        for (int i=0;i<len;++i) {
+            if (left==null) left = nums[i];
+            if (idx != nums[i]) {
+                right = nums[i-1];
+                if (left.intValue() == right.intValue()) {
+                    result.add(String.valueOf(left));
+                } else {
+                    String value = MessageFormat.format("{0}->{1}", left, right);
+//                    String value = left + "->" + right;
+                    result.add(value);
+                }
+                left = nums[i];
+                idx = nums[i];
+            } else ++idx;
+        }
+        if (left!=null) {
+            int num = nums[len - 1];
+            if (left.intValue()!=num) result.add(MessageFormat.format("{0}->{1}",left,num));
+            else result.add(String.valueOf(left));
+        }
+        return result;
+    }
+
+    /**
+     * 628. 三个数的最大乘积
+     * 排序后，最大的就两种情况
+     *  1.全是正数的情况下，取最大的三个正数
+     *  2.有负数的情况下，取最小的两个负数和最大的正数
+     * 取两种情况下的较大的一种
+     * @param nums
+     * @return
+     */
+    public int maximumProduct(int[] nums) {
+        Arrays.sort(nums);
+        int len = nums.length;
+        int first = nums[len-1];
+        int second = nums[len-2];
+        int third = nums[len-3];
+        int resultOne = first*second*third;
+        int fourth = nums[0];
+        int fifth = nums[1];
+        int resultTwo = fourth*fifth*first;
+
+        return Math.max(resultOne,resultTwo);
+    }
+
+    /**
+     * 面试题 02.05. 链表求和
+     * @param l1
+     * @param l2
+     * @return
+     */
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        int mod = 0;
+        ListNode head = new ListNode(-1);
+        ListNode tmpHead = head;
+        while (l1!=null || l2!=null || mod > 0) {
+            int sum = mod;
+            if (l1!=null) {
+                sum += l1.val;
+                l1 = l1.next;
+            }
+            if (l2!=null) {
+                sum += l2.val;
+                l2 = l2.next;
+            }
+            mod = sum/10;
+            tmpHead.next = new ListNode(sum%10);
+            tmpHead = tmpHead.next;
+        }
+        return head.next;
+    }
+
+    /**
+     * 1052. 爱生气的书店老板
+     * 滑动窗口
+     * 先计算出 原本的值 total，然后根据 X的窗口，求最大增益 maxIncr
+     * 结果即 total + maxIncr
+     * @param customers
+     * @param grumpy
+     * @param X
+     * @return
+     */
+    public int maxSatisfied(int[] customers, int[] grumpy, int X) {
+        int custLen = customers.length;
+        int total = 0;
+        for(int i=0;i<custLen;++i) {
+            total += customers[i] * (grumpy[i]^1);
+        }
+        int incr = 0;
+        for (int i=0;i<X;++i) {
+            incr += customers[i] * grumpy[i];
+        }
+        int maxIncr = incr;
+        for (int i=X;i<custLen;++i) {
+            incr = incr - (customers[i-X] * grumpy[i-X]) + (customers[i] * grumpy[i]);
+            maxIncr = Math.max(maxIncr,incr);
+        }
+        return total + maxIncr;
+    }
+
+    /**
+     * 最长公共子序列
+     * 二维dp
+     * @param text1
+     * @param text2
+     * @return
+     */
+    public int longestCommonSubsequence(String text1, String text2) {
+        if (text1==null || text2==null) return 0;
+        int len1 = text1.length();
+        int len2 = text2.length();
+        //+1表示默认dp[0][0]都是空串
+        int[][] dp = new int[len1+1][len2+1];
+        for (int i=0;i<len1;++i) {
+            for (int j=0;j<len2;++j) {
+                char a = text1.charAt(i);
+                char b = text2.charAt(j);
+                if (a==b) {
+                    //因为dp[0][0]是设置为空串，所以实际上 dp[i+1][j+1]才是正常的定位格，dp[i][j]是退格位置
+                    dp[i+1][j+1] = dp[i][j] + 1;
+                } else {
+                    dp[i+1][j+1] = Math.max(dp[i][j+1],dp[i+1][j]);
+                }
+            }
+        }
+        return dp[len1][len2];
+    }
+
+    /**
+     * leetcode 62题
+     * @param m
+     * @param n
+     * @return
+     */
+    public int uniquePaths(int m, int n) {
+        int[] dp = new int[m];
+        Arrays.fill(dp,1);
+        for(int i=1;i<n;++i) {
+            for(int j=1;j<m;++j) {
+                dp[j] = dp[j-1] + dp[j];
+            }
+        }
+        return dp[m-1];
+    }
+
+    /**
+     * 股票的最大利润
+     * @param prices
+     * @return
+     */
+    public int maxProfit(int[] prices) {
+        if (prices==null) return 0;
+        int len = prices.length;
+        if (len==0) return 0;
+
+        //状态 第i天 持有、不持有,不持有有今天卖了和原本就没有两种情况，持有有原本就持有和买了今天的
+        int[][] dp = new int[len][2];
+        //base case
+        dp[0][0] = 0;
+        dp[0][1] = -prices[0];
+        //选择 buy、sell、rest
+        for (int i=1;i<len;++i) {
+            dp[i][0] = Math.max(dp[i-1][0],dp[i-1][1]+prices[i]);
+            dp[i][1] = Math.max(dp[i-1][1],dp[i-1][0]-prices[i]);
+        }
+        return dp[len-1][0];
+    }
+
+    /**
+     * 最长递增子序列
+     * @param nums
+     * @return
+     */
+    public int lengthOfLIS(int[] nums) {
+        int len = nums.length;
+        int[] dp = new int[len];
+        int res = nums[0];
+        for(int i=0;i<len;++i) {
+            dp[i] = 1;  //自己独自一个序列即是 1 的长度
+            for(int j=0;j<i;++j) {
+                if(nums[j] < nums[i]) dp[i] = Math.max(dp[i],dp[j]+1);
+                res = Math.max(res,dp[i]);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * 最长回文串
+     * @param s
+     * @return
+     */
+    public String longestPalindrome(String s) {
+        int len = s.length();
+        if(len<2) return s;
+        char[] arr = s.toCharArray();
+        int begin = 0;
+        int maxLen = 1;
+        for(int i=0;i<len-1;++i) {
+            for(int j=i+1;j<len;++j) {
+                if(j-i+1 > maxLen && isPalindrome(arr,i,j)) {
+                    maxLen = j-i+1;
+                    begin = i;
+                }
+            }
+        }
+        return s.substring(begin,begin+maxLen);
+    }
+
+    /**
+     * 判断是否回文串
+     * @param arr
+     * @param left
+     * @param right
+     * @return
+     */
+    public boolean isPalindrome(char[] arr, int left, int right) {
+        while(left < right) {
+            if(arr[left] != arr[right]) return false;
+            ++left;
+            --right;
+        }
+        return true;
+    }
+
+//    static long left = -1l;
+//    static long right = 0l;
+    //可用 TimeUnit 替换 Set 的Long 增大 并发度（TimeUnit可以精确到纳秒）
+//    static Set<Long> set = new HashSet<>();
+    static Map<String,Set<Long>> map = new HashMap<>();
+    static long limitTime = 10*60*1000;
+    public static boolean canInvoke(String methodName,String callerId){
+        long cur = System.currentTimeMillis();
+        String key = MessageFormat.format("{0}-{1}",methodName,callerId);
+        Set<Long> tmpSet = map.get(key);
+        if(tmpSet==null) {
+//            if(left==-1) { left = l; }
+            tmpSet = new HashSet<>();
+            tmpSet.add(cur);
+            map.put(key,tmpSet);
+        } else {
+//            int diff = (int) (dif/limitTime);
+//            int count = set.size();
+            //right - 10分钟即可，完全没必要记录left
+            if(countSet(tmpSet,cur - limitTime,cur) > 1000) return true;
+            tmpSet.add(cur);
+        }
+        return false;
+    }
+    private static int countSet(Set<Long> set, long left, long right) {
+        int result = 0;
+        for(long time:set) {
+            if(left < time && time < right) ++result;
+            else set.remove(time);
+        }
+        return result;
+    }
+
+    /**
+     * 最大信封
+     * @param envelopes
+     * @return
+     */
+    public int maxEnvelopes(int[][] envelopes) {
+        Arrays.sort(envelopes,(o1,o2)->{
+            if(o2[0]!=o1[0]) return o2[0]-o1[0];
+            else return o2[1]-o1[1];
+        });
+        int row = envelopes.length;
+        int res = 1;
+        int curRow = envelopes[0][0],curCol = envelopes[0][1];
+        for(int i=1;i<row;++i){
+            if(envelopes[i][0]<curRow && envelopes[i][1]<curCol) {
+                ++res;
+                curRow = envelopes[i][0];
+                curCol = envelopes[i][1];
+            }
+        }
+        return res;
+    }
+
+    public static String changeStr(String str) {
+        StringBuffer sb1 = new StringBuffer();
+        StringBuffer sb2 = new StringBuffer();
+        if(str==null) return str;
+        int len = str.length();
+        for(int i=0;i<len;++i) {
+            char c = str.charAt(i);
+            if(c=='*') sb1.append(c);
+            else sb2.append(c);
+        }
+        return (sb1.append(sb2)).toString();
+    }
+
+    //arr要有序
+    private static int rrre = 0;
+    public static void countResult(int[] arr, int idx,boolean[] used,int sum) {
+        if (sum==24) {
+            ++rrre;
+            return;
+        }
+        if(idx==arr.length) {
+            return;
+        }
+
+        for(int i=idx;i<arr.length;++i) {
+            if(!used[i]) {
+                if(i>0 && arr[i]==arr[i-1] && !used[i-1]) continue;
+                sum += arr[i];
+                used[i] = true;
+                countResult(arr,i+1,used,sum);
+                used[i] = false;
+                sum -= arr[i];
+            }
+        }
+    }
+
+
+    TreeNode biNodeHead = new TreeNode(-1);
+    TreeNode biNodePre = null;
+    public TreeNode convertBiNode(TreeNode root) {
+        if(root==null) return null;
+        convertBiNode(root.left);
+        if(biNodePre==null) biNodeHead.right = root;
+        else biNodePre.right = root;
+        biNodePre = root;
+        root.left = null;
+        convertBiNode(root.right);
+        return biNodeHead.right;
+    }
+
+    /**
+     * 圆环上有10个点，编号为0~9。从0出发，每次可以逆时针和顺时针走一步，问走n步回到0共有多少种走法。
+     * @return
+     */
+    int res = 0;
+    public int fun(int n){
+        dfs(0,n);
+        return res;
+    }
+    /**
+     * @param i:当前索引
+     * @param n：还剩几步
+     */
+    private void dfs(int i, int n) {
+        //走完了
+        if (n == 0){
+            //是否回到了0点
+            if (i == 0){
+                //总方法数加一
+                res++;
+            }
+            return;
+        }
+        //顺时针
+        int nextL = (i + 1) % 10;
+        dfs(nextL,n-1);
+        //逆时针
+        int nextR = (i - 1 + 10) % 10;
+        dfs(nextR,n-1);
+    }
+
+    public int dp(int n){
+        //matrix[i][j]表示在还有i步时，当前位置为j，可以有matrix[i][j]种方法走到0点
+        int[][] matrix = new int[n+1][10];
+        //只剩0步时，只能有0种方法（这里其实可以不写，写出来是方便理解）
+        for (int i = 0;i < 10;i++) {
+            matrix[0][i] = 0;
+        }
+        //初始化，只剩一步时，1,9位置都有一种方法到达0点，其它位置都是0种方法
+        matrix[1][1] = 1;
+        matrix[1][9] = 1;
+        //i表示剩几步，从2步开始算
+        for (int i =2;i < n+1;i++) {
+            //j表示当前位置
+            for (int j = 0;j < 10;j++) {
+                if(j>0&&j<9)
+                    //到达0点方法数等于前一步的两个位置之和（j-1和j+1代表顺/逆序时针的前一步位置）
+                    matrix[i][j] = matrix[i - 1][j + 1] + matrix[i - 1][j - 1];
+                if(j==0) //这里也是计算前一步的两个位置之和，但位置减一会小于0，所以直接用9代替逆时针的前一步位置
+                    matrix[i][j] = matrix[i - 1][j + 1] + matrix[i - 1][9];
+                if (j == 9)
+                    matrix[i][j] = matrix[i - 1][0] + matrix[i - 1][j-1];
+            }
+        }
+        return matrix[n][0];
+    }
+
+    /**
+     * 圆环上有10个点，编号为0~9。从0出发，每次可以逆时针和顺时针走一步，问走n步回到0共有多少种走法。
+     * @param n
+     * @return
+     */
+    public int getSteps(int n) {
+        int[][] matrix = new int[n+1][10];
+        matrix[1][1] = 1;
+        matrix[1][9] = 1;
+        for(int i=2;i<n+1;++i) {
+            for(int j=0;j<10;++j) {
+                if(j>0 && j<9) matrix[i][j] = matrix[i-1][j+1] + matrix[i-1][j-1];
+                if (j==0) matrix[i][j] = matrix[i-1][j+1] + matrix[i-1][9];
+                if (j==9) matrix[i][j] = matrix[i-1][0] + matrix[i-1][j-1];
+            }
+        }
+        return matrix[n][0];
+    }
+
+    /**
+     * 判断是否奇偶树
+     * @param root
+     * @return
+     */
+    public boolean isEvenOddTree(TreeNode root) {
+        if(root==null) return true;
+        Deque<TreeNode> q = new ArrayDeque<>();
+        q.add(root);
+        int level = 0;
+        while(!q.isEmpty()) {
+            int size = q.size();
+            int tmpNux = -1;
+            for(int i=0;i<size;++i) {
+                TreeNode tmp = q.pop();
+                if(level%2==0) {
+                    //偶数层，奇整数，严格递增
+                    if(tmp.val % 2 == 0) return false;
+                    if(i>0) {
+                        if(tmp.val <= tmpNux) return false;
+                    }
+                } else {
+                    //奇数层，偶整数，严格递减
+                    if(tmp.val % 2 == 1) return false;
+                    if(i>0) {
+                        if(tmp.val >= tmpNux) return false;
+                    }
+                }
+                tmpNux = tmp.val;
+                if(tmp.left != null) q.addLast(tmp.left);
+                if(tmp.right != null) q.addLast(tmp.right);
+            }
+            ++level;
+        }
+        return true;
+    }
+
+    /**
+     * 二叉树转链表
+     * 递增顺序查找树
+     */
+    private TreeNode head = new TreeNode(-1);
+    private TreeNode pre = null;
+    public TreeNode increasingBST(TreeNode root) {
+        if (root==null) return null;
+        increasingBST(root.left);
+        if (pre==null) head.right = root;
+        else pre.right = root;
+        pre = root;
+        root.left = null;
+        increasingBST(root.right);
+        return head.right;
+    }
+
+    /**
+     * 不同的子序列
+     * @param s
+     * @param t
+     * @return
+     */
+    public int numDistinct(String s, String t) {
+        int m = s.length(), n = t.length();
+        //dp[0][x] 和 dp[x][0] 表示 s空串 或 t空串，所以设置为 m+1 和 n+1
+        int[][] dp = new int[m+1][n+1];
+        //base case
+        for(int i=0;i<=m;++i) dp[i][0] = 1;
+        for(int i=1;i<=m;++i) {
+            for(int j=1;j<=n;++j) {
+                if(j>i) break;
+                //相等时，如果s选了这个字符，则t也要选，所以此时子序列应该是 dp[i-1][j-1]；s不选的话，就要看 剩下的s有没有t，即dp[i-1][j];
+                if(s.charAt(i-1) == t.charAt(j-1)) dp[i][j] = dp[i-1][j-1] + dp[i-1][j];
+                else dp[i][j] = dp[i-1][j];
+            }
+        }
+        return dp[m][n];
+    }
+
+
+
+
+    /**
+     * 移除重复元素
+     * @param nums
+     * @return
+     */
+    public int removeDuplicates(int[] nums) {
+        int len = nums.length;
+        if(len==0) return 0;
+        int j=0;
+        for(int i=1;i<len;++i) {
+            //后一个替换前一个
+            if(nums[j]!=nums[i]) nums[++j] = nums[i];
+        }
+        return ++j;
+    }
+
+    /**
+     * 反转数字
+     * @param x
+     * @return
+     */
+    public int reverse(int x) {
+        int res = 0;
+        while(x!=0) {
+            int mod = x%10;
+            if(res > Integer.MAX_VALUE/10 || (res == Integer.MAX_VALUE && mod > 7)) return 0;
+            if(res < Integer.MIN_VALUE/10 || (res == Integer.MIN_VALUE && mod < -8)) return 0;
+            res = res*10 + mod;
+            x = x/10;
+        }
+        return res;
+    }
+
+    /**
+     * 递增子序列
+     * @param nums
+     * @return
+     */
+    public List<List<Integer>> findSubsequences(int[] nums) {
+        if(nums==null) return new ArrayList<>();
+        List<List<Integer>> result = new ArrayList<>();
+        findSubsequences(nums,0,Integer.MIN_VALUE, new ArrayList<>(), result);
+        return result;
+    }
+
+    /**
+     *
+     * @param nums
+     * @param idx 当前索引
+     * @param last 前一个选择值
+     * @param list
+     * @param result
+     */
+    public void findSubsequences(int[] nums, int idx,int last, List<Integer> list, List<List<Integer>> result) {
+        if (idx == nums.length) {
+            if (list.size() >= 2) result.add(new ArrayList<>(list));
+            return;
+        }
+        //符合递增要求，选择当前元素，最小值变为 当前值
+        //只有当前的元素大于等于上一个选择的元素的时候才能选择这个元素，这样枚举出来的所有元素都是合法的
+        if (nums[idx] >= last) {
+            list.add(nums[idx]);
+            findSubsequences(nums, idx + 1, nums[idx], list, result);
+            list.remove(list.size()-1);
+        }
+        //当前元素不等于当前最小值时（防止重复），不选当前元素，直接找下一个，最小值依旧不变
+        /**
+         * 只有当当前的元素不等于上一个选择的元素的时候，才考虑不选择当前元素，直接递归后面的元素。因为如果有两个相同的元素，我们会考虑这样四种情况：
+         *
+         * 前者被选择，后者被选择
+         * 前者被选择，后者不被选择
+         * 前者不被选择，后者被选择
+         * 前者不被选择，后者不被选择
+         *
+         * 其中第二种情况和第三种情况其实是等价的，我们这样限制之后，舍弃了第二种，保留了第三种，于是达到了去重的目的。
+         *
+         */
+        if (nums[idx] != last) {
+            findSubsequences(nums, idx + 1, last, list, result);
+        }
+    }
+
+
     public static void main(String[] args) {
         Solution solution = new Solution();
+
+        int reverse = solution.reverse(Integer.MIN_VALUE);
+        System.out.println(reverse);
+        int[] ints = {1,1,2, 2,2, 3,3, 4,4,5, 5,6, 6};
+        solution.removeDuplicates(ints);
+        System.out.println(Arrays.toString(ints));
+        int steps = solution.getSteps(2);
+        System.out.println(steps);
+        Solution.countResult(new int[]{1,1,2,22,23},0,new boolean[5],0);
+        System.out.println(rrre);
+        //[[5,4],[6,4],[6,7],[2,3]][[46,89],[50,53],[52,68],[72,45],[77,81]]
+        solution.maxEnvelopes(new int[][]{{46,89},{50,53},{52,68},{72,45},{77,81}});
+        Scanner in = new Scanner(System.in);
+
+        solution.isMatch("aa","a*");
+        solution.longestPalindrome("babad");
+        solution.lengthOfLIS(new int[]{1,3,6,7,9,4,10,5,6});
+        solution.uniquePaths(3,2);
+        System.out.println(19^1);
+        String s1 = null;
+        System.out.println((String) s1);
+
+        solution.largeGroupPositions("babaaaabbb");
+        ListNode partition = new ListNode(1);
+        partition.next = new ListNode(2);
+        solution.partition(partition,2);
+
+        solution.lastStoneWeight(new int[]{});
+        String tttt = "00219123";
+        boolean b = tttt.startsWith("0029");
+
+        int i2 = solution.numWays(7);
+        System.out.println(i2);
+
         double v = solution.stringToDouble("3.14");
 
 //        solution.matrixScore(new int[][]{{0,0,1,1},{1,0,1,0},{1,1,0,0}});
@@ -2412,7 +3585,9 @@ public class Solution {
         List<test> testArrayList = new ArrayList<>();
         testArrayList.add(new test(1,"3"));
         testArrayList.add(new test(2,"2"));
+        StringBuffer sb = new StringBuffer();
         testArrayList.add(new test(3,"1"));
+        System.out.println(testArrayList.toString());
 
         String format = MessageFormat.format("{0}-{1}[{2}]", 1, 2, 3);
         System.out.println(format);

@@ -17,8 +17,9 @@ public class QuickSort {
                 while (i<j && arr[i]<=pivot) ++i;
                 if (i<j) arr[j--] = arr[i];
             }
-            arr[i] = pivot;
-            quickSort(arr,left,i-1);
+            //跳出循环时，说明 i==j
+            arr[j] = pivot;
+            quickSort(arr,left,j-1);
             quickSort(arr,i+1,right);
         }
 

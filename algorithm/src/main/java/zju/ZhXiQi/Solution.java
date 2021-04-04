@@ -2108,9 +2108,24 @@ public class Solution {
         return length;
     }
 
+    /**
+     * Integer.reverse(n)
+     * @param n
+     * @return
+     */
+    public int reverseBits(int n) {
+        int result = 0;
+        for (int i=0;i<32;++i) result = (result << 1) + ((n >>> i) & 1);
+        return result;
+    }
+
     public static void main(String[] args) {
 
         Solution solution = new Solution();
+        int i2 = solution.reverseBits(0b00000010100101000001111010011100);
+        Integer.reverse(0b00000010100101000001111010011100);
+
+        System.out.println(i2);
         /*solution.firstUniqChar("leetcode");
 
         solution.printNumbers(1);

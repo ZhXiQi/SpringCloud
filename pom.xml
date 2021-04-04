@@ -84,9 +84,43 @@
         </dependencies>
     </dependencyManagement>
 
-<!--
+    <!--
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>xxx.xxx</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>
+                                ${project.build.directory}/lib
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             &lt;!&ndash; 纯maven项目，打全依赖包（项目使用的依赖也打包进jar包） &ndash;&gt;
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -120,6 +154,6 @@
             </plugin>
         </plugins>
     </build>
--->
+    -->
 
 </project>
