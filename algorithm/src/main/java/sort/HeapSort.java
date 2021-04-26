@@ -53,9 +53,9 @@ public class HeapSort {
             //节点与左右子节点比较，不断向下
             while (true){
                 //从index结点的左孩子结点开始，也就是2i+1处开始
-                int left = 2*index+1;//等同于 (index<<1)+1
+                int left = 2*index;//等同于 (index<<1)
                 //右孩子
-                int right = 2*index+2;//等同于 (index<<1)+2
+                int right = 2*index+1;//等同于 (index<<1)+1
                 //默认父节点
                 int fatherIndex = index;
                 if (largest){
@@ -169,11 +169,11 @@ public class HeapSort {
         int[] arr = {8,9,7,6,1,4,3,2,1};
         HeapSort heapSort = new HeapSort();
         //自底向上
-        HeapSortFromDown heapSortFromDown = heapSort.new HeapSortFromDown();
-        heapSortFromDown.heapSort(arr);
+//        HeapSortFromDown heapSortFromDown = heapSort.new HeapSortFromDown();
+//        heapSortFromDown.heapSort(arr);
         //自顶向下
-//        HeapSortFromUp heapSortFromUp = heapSort.new HeapSortFromUp();
-//        heapSortFromUp.heapSort(arr,false);
+        HeapSortFromUp heapSortFromUp = heapSort.new HeapSortFromUp();
+        heapSortFromUp.heapSort(arr,false);
         System.out.println(Arrays.toString(arr));
     }
 

@@ -1895,42 +1895,6 @@ public class Solution {
         return sbS.toString().equals(sbT.toString());
     }
 
-    public void reorderList(ListNode head) {
-        if(head==null) return;
-        Deque<ListNode> one = new ArrayDeque<>();
-        Deque<ListNode> two = new ArrayDeque<>();
-        ListNode first = head;
-        ListNode second = head;
-        while (second.next!=null && second.next.next!=null) {
-            one.add(first);
-            first = first.next;
-            second = second.next.next;
-        }
-        one.add(first);
-        first = first.next;
-        while (first!=null) {
-            two.add(first);
-            first = first.next;
-        }
-
-        ListNode result = head;
-        if (one.size()==1 && two.size()==0) return;
-        while (!one.isEmpty() || !two.isEmpty()) {
-            if (!one.isEmpty()) {
-                ListNode tmp = one.pollFirst();
-                tmp.next = null;
-                result.next = tmp;;
-                result = result.next;
-            }
-            if (!two.isEmpty()) {
-                ListNode tmp = two.pollLast();
-                tmp.next = null;
-                result.next = tmp;
-                result = result.next;
-            }
-        }
-    }
-
     public List<Integer> preorderTraversal(TreeNode root) {
 
         Deque<TreeNode> deque = new ArrayDeque<>();
@@ -3331,6 +3295,11 @@ public class Solution {
         dfs(nextR,n-1);
     }
 
+    /**
+     * 圆环上有10个点，编号为0~9。从0出发，每次可以逆时针和顺时针走一步，问走n步回到0共有多少种走法。
+     * dp做法
+     * @return
+     */
     public int dp(int n){
         //matrix[i][j]表示在还有i步时，当前位置为j，可以有matrix[i][j]种方法走到0点
         int[][] matrix = new int[n+1][10];
@@ -3473,6 +3442,38 @@ public class Solution {
     }
 
     /**
+     * 移除重复元素II  每个元素允许有两个
+     * @param nums
+     * @return
+     */
+    public int removeDuplicatesII(int[] nums) {
+        if(nums==null || nums.length==0) return 0;
+        if(nums.length < 2) return nums.length;
+        int result = 2;
+        for (int i=2;i<nums.length;i++) {
+            if (nums[i] != nums[result-2]) nums[result++] = nums[i];
+        }
+        return result;
+    }
+
+    /**
+     * 移除元素
+     * @param nums
+     * @param val 移除的给定元素
+     * @return
+     */
+    public int removeElement(int[] nums, int val) {
+        int idx = 0;
+        int len = nums.length;
+        for(int i=0;i<len;++i) {
+            if(nums[i]!=val) {
+                nums[idx++] = nums[i];
+            }
+        }
+        return idx;
+    }
+
+    /**
      * 反转数字
      * @param x
      * @return
@@ -3538,13 +3539,316 @@ public class Solution {
         }
     }
 
+    /**
+     * 跳跃游戏 II
+     * @param nums
+     * @return
+     */
+    public int jump(int[] nums) {
+        if(nums==null || nums.length<=1) return 0;
+        int start = 0;
+        int end = 1;
+        int result = 0;
+        while(end < nums.length) {
+            int maxStep = 0;
+            //每次找最大的步数
+            for(int i=start;i<end;++i) maxStep = Math.max(nums[i]+i,maxStep);
+            start = end;
+            end = maxStep + 1;
+            result++;
+        }
+        return result;
+    }
+
+    /**
+     * 三数只和 等于 0
+     * 双指针法
+     * @param nums
+     * @return
+     */
+    public List<List<Integer>> threeSum(int[] nums) {
+        //先排序，方便去重
+        Arrays.sort(nums);
+        List<List<Integer>> result = new ArrayList<>();
+        int len = nums.length;
+        for(int i=0;i<len;++i) {
+            if(nums[i] > 0) break;
+            //去重
+            if(i>0 && nums[i] == nums[i-1]) continue;
+            int target = -nums[i];
+            int  left = i+1,right = len-1;
+            while(left <  right) {
+                int tmp = nums[left] + nums[right];
+                if(tmp == target) {
+                    result.add(new ArrayList<>(Arrays.asList(nums[i],nums[left],nums[right])));
+                    ++left;
+                    --right;
+                    //去重
+                    while (left < right && nums[left] == nums[left-1]) ++left;
+                    while (left < right && nums[right] == nums[right+1]) --right;
+                } else if (tmp < target) {
+                    ++left;
+                }  else {
+                    --right;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 丑数 就是只包含质因数 2、3 和/或 5 的正整数。
+     * @param n
+     * @return
+     */
+    public boolean isUgly(int n) {
+        if(n==1) return true;
+        if(n==0) return false;
+        //递归法
+        if(n%5==0) return isUgly(n/5);
+        if(n%3==0) return isUgly(n/3);
+        if(n%2==0) return isUgly(n/2);
+        return false;
+        //迭代法
+        /*while (n%5==0) n = n/5;
+        while (n%3==0) n = n/3;
+        while (n%2==0) n = n/2;
+        return n==1;*/
+    }
+
+    /**
+     * 两数之和
+     * @param nums
+     * @param target
+     * @return
+     */
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> hashtable = new HashMap<Integer, Integer>();
+        for (int i = 0; i < nums.length; ++i) {
+            if (hashtable.containsKey(target - nums[i])) {
+                return new int[]{hashtable.get(target - nums[i]), i};
+            }
+            hashtable.put(nums[i], i);
+        }
+        return new int[0];
+    }
+
+    /**
+     * 合并链表
+     * 合并两个有序的链表
+     * @param l1
+     * @param l2
+     * @return
+     */
+    public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        if (l1==null && l2==null) return null;
+        if (l1==null && l2!=null) return l2;
+        if (l1!=null && l2==null) return l1;
+
+        ListNode root = new ListNode(0);
+        ListNode head = root;
+        while (l1!=null && l2!=null){
+            int l1Val = l1.val;
+            int l2Val = l2.val;
+            if (l1Val>=l2Val){
+                head.next = new ListNode(l2Val);
+                head = head.next;
+                l2 = l2.next;
+            }else {
+                head.next = new ListNode(l1Val);
+                head = head.next;
+                l1 = l1.next;
+            }
+        }
+        if (l1!=null) head.next = l1;
+        if (l2!=null) head.next = l2;
+        return root.next;
+
+        //递归解法
+        /*if (l1==null) return l2;
+        if (l2==null) return l1;
+        if (l1.val <= l2.val) {
+            l1.next = mergeTwoLists(l1.next,l2);
+            return l1;
+        } else {
+            l2.next = mergeTwoLists(l1,l2.next);
+            return l2;
+        }*/
+    }
+
+    /**
+     * 最大数
+     * 字符串数字组成最大数
+     * @param nums
+     * @return
+     */
+    public String largestNumber(int[] nums) {
+        String[] numsStr = new String[nums.length];
+        int len = nums.length;
+        for(int i=0;i<len;++i) {
+            numsStr[i] = String.valueOf(nums[i]);
+        }
+        Arrays.sort(numsStr,
+                //按照特殊的字符串排序 3，30 较大排序为 330 而不是 303，所以排序方式为 (o2+o1).compareTo((o1+o2)),即 "330".compareTo("303")
+                (o1, o2) -> (o2+o1).compareTo(o1+o2));
+        StringBuffer sb = new StringBuffer();
+        for(int i=0;i<len;++i) sb.append(numsStr[i]);
+
+        //排除特殊情况，最开始都是"0"的情况
+        while(sb.length() > 1 && sb.charAt(0) == '0') sb.deleteCharAt(0);
+        return sb.toString();
+    }
+
+    /**
+     * 合并K个升序链表
+     * @param lists
+     * @return
+     */
+    public ListNode mergeKLists(ArrayList<ListNode> lists) {
+        if(lists==null || lists.size()==0) return null;
+        int len = lists.size();
+
+        ListNode result = new ListNode(Integer.MIN_VALUE);
+        for(int i=0;i<len;++i) {
+            result = mergeLists(result,lists.get(i));
+        }
+        return result.next;
+    }
+
+    public ListNode mergeLists(ListNode l1, ListNode l2) {
+        if (l1==null) return l2;
+        if (l2==null) return l1;
+        if(l1.val <= l2.val) {
+            l1.next = mergeLists(l1.next,l2);
+            return l1;
+        } else {
+            l2.next = mergeLists(l1,l2.next);
+            return l2;
+        }
+    }
+
+    /**
+     * 重排链表
+     * @param head
+     */
+    public void reorderList(ListNode head) {
+        if (head == null || head.next == null || head.next.next == null) {
+            return;
+        }
+        ListNode mid = middleNode(head);
+        ListNode l1 = head;
+        ListNode l2 = mid.next;
+        mid.next = null;
+        l2 = reverseList(l2);
+        mergeList(l1, l2);
+
+        /*
+        //递归
+        if(head == null  || head.next == null || head.next.next == null) return;
+        ListNode tmp = head;
+        while (tmp.next.next != null) tmp = tmp.next;
+        tmp.next.next = head.next;
+        head.next = tmp.next;
+        tmp.next = null;
+        reorderList(head.next.next);
+
+
+        //队列
+        if(head==null || head.next==null || head.next.next==null) return;
+        Deque<ListNode> one = new ArrayDeque<>();
+        Deque<ListNode> two = new ArrayDeque<>();
+        ListNode first = head;
+        ListNode second = head;
+        while (second.next!=null && second.next.next!=null) {
+            one.add(first);
+            first = first.next;
+            second = second.next.next;
+        }
+        one.add(first);
+        first = first.next;
+        while (first!=null) {
+            two.add(first);
+            first = first.next;
+        }
+
+        ListNode result = head;
+        if (one.size()==1 && two.size()==0) return;
+        while (!one.isEmpty() || !two.isEmpty()) {
+            if (!one.isEmpty()) {
+                ListNode tmp = one.pollFirst();
+                tmp.next = null;
+                result.next = tmp;;
+                result = result.next;
+            }
+            if (!two.isEmpty()) {
+                ListNode tmp = two.pollLast();
+                tmp.next = null;
+                result.next = tmp;
+                result = result.next;
+            }
+        }
+         */
+    }
+
+    /**
+     * 快慢指针求中间节点
+     * @param head
+     * @return
+     */
+    public ListNode middleNode(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        while (fast.next != null && fast.next.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        return slow;
+    }
+
+    /**
+     * 反转链表
+     * @param head
+     * @return
+     */
+    public ListNode reverseList(ListNode head) {
+        ListNode prev = null;
+        ListNode curr = head;
+        while (curr != null) {
+            ListNode nextTemp = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = nextTemp;
+        }
+        return prev;
+    }
+
+    /**
+     * 合并链表
+     * @param l1
+     * @param l2
+     */
+    public void mergeList(ListNode l1, ListNode l2) {
+        ListNode l1_tmp;
+        ListNode l2_tmp;
+        while (l1 != null && l2 != null) {
+            l1_tmp = l1.next;
+            l2_tmp = l2.next;
+
+            l1.next = l2;
+            l1 = l1_tmp;
+
+            l2.next = l1;
+            l2 = l2_tmp;
+        }
+    }
 
     public static void main(String[] args) {
         Solution solution = new Solution();
 
         int reverse = solution.reverse(Integer.MIN_VALUE);
         System.out.println(reverse);
-        int[] ints = {1,1,2, 2,2, 3,3, 4,4,5, 5,6, 6};
+        int[] ints = {3,2,4};
+        solution.twoSum(ints,6);
         solution.removeDuplicates(ints);
         System.out.println(Arrays.toString(ints));
         int steps = solution.getSteps(2);
