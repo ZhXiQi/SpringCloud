@@ -138,6 +138,9 @@ public class Design {
         }
     }
 
+    /**
+     * 线程交替打印，不实用锁实现
+     */
     static class FairRunnable3 implements Runnable {
         volatile static int flag = 1;
         final Object object = new Object();
