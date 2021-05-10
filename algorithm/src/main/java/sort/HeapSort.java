@@ -49,7 +49,7 @@ public class HeapSort {
          * @param index 节点索引
          * @param largest true-构建大顶堆/false-构建小顶堆
          */
-        public void heapify(int[] arr, int len, int index, boolean largest){
+        public void heapify(int[] arr, int len, int index, boolean largest) {
             //节点与左右子节点比较，不断向下
             while (true){
                 //从index结点的左孩子结点开始，也就是2i+1处开始
@@ -59,11 +59,13 @@ public class HeapSort {
                 //默认父节点
                 int fatherIndex = index;
                 if (largest){
+                    //大顶堆
                     //左孩子比父节点大(大顶堆)
                     if (left < len && arr[left] > arr[fatherIndex]) fatherIndex = left;
                     //右孩子比父节点大(大顶堆)
                     if (right < len && arr[right] > arr[fatherIndex]) fatherIndex = right;
                 }else {
+                    //小顶堆
                     //左孩子比父节点小(小顶堆)
                     if (left < len && arr[fatherIndex] > arr[left]) fatherIndex = left;
                     //右孩子比父节点小(小顶堆)
@@ -84,7 +86,7 @@ public class HeapSort {
          * @param largest true-构建大顶堆/false-构建小顶堆
          * @return
          */
-        public int[] heapSort(int[] arr,boolean largest){
+        public int[] heapSort(int[] arr,boolean largest) {
             int length = arr.length;
             //1.建堆，堆顶会是需要的已排好位置的值
             buildHeap(arr,length,largest);
