@@ -10,10 +10,13 @@ public class QuickSort {
     public void quickSort(int[] arr,int left,int right){
 
         if (left < right){
+            //left下标的值作为中间比较值，所以需要先从右边开始往回比
             int i=left,j=right,pivot=arr[left];
             while (i<j){
+                //先比右边
                 while (i<j && arr[j]>=pivot) --j;
                 if (i<j) arr[i++] = arr[j];
+                //后比左边
                 while (i<j && arr[i]<=pivot) ++i;
                 if (i<j) arr[j--] = arr[i];
             }
