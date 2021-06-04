@@ -1,14 +1,20 @@
 package com.springcloud.client.powerMock;
 
 import com.springcloud.client.redis.demo.User;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.api.support.membermodification.MemberModifier;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+
 
 /**
  * @author ZhXiQi
@@ -23,7 +29,7 @@ import org.powermock.reflect.Whitebox;
  * @date 2020/8/25 20:59
  */
 @RunWith(PowerMockRunner.class) //在任何需要用到 PowerMock 的类开始之前，需要做此声明，让测试运行于 PowerMock 环境
-@PrepareForTest({}) //如果需要测试静态方法，需要将静态方法的类提供给 PowerMock
+@PrepareForTest({Integer.class}) //如果需要测试静态方法，需要将静态方法的类提供给 PowerMock
 public class PowerMockitoTest {
 
     @InjectMocks    //此注解表示这个对象需要被注入mock对象
@@ -41,5 +47,23 @@ public class PowerMockitoTest {
         MockitoAnnotations.initMocks(this);
 //        Whitebox.setInternalState();
 //        PowerMockito.mockStatic();
+    }
+
+    @Before
+    public void before() {
+        AtomicInteger value = new AtomicInteger(1);
+        //替换了 Integer 对象里的 intValue 方法 用 值自增代替
+        MemberModifier.replace(MemberModifier.method(Integer.class,"intValue"))
+                .with((proxy, method, args) -> value.getAndIncrement());
+    }
+
+    @Test
+    public void test4Aequal123() {
+        Integer a = 1;
+        if (a == 1 && a == 2 && a == 3) {
+            System.out.println("Success");
+        } else {
+            Assert.fail("(a == 1 && a == 2 && a == 3) != true, a = " + a.intValue());
+        }
     }
 }

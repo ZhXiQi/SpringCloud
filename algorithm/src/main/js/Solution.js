@@ -49,3 +49,19 @@ var A = [1,3,1,4]
 var B = [1,2,3,4]
 let re = advantageCount(A,B)
 console.log(re)
+
+
+var a = {
+    i : 1,
+    valueOf: function () {
+        if (this.i === 1) {
+            this.i++;
+            return 1;
+        } else {
+            return 12;
+        }
+    }
+}
+if (a == 1 && a == 12) {
+    console.log("----:"+a)
+}

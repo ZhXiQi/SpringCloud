@@ -116,11 +116,20 @@ Go语言变量可以在三个地方声明：
 */
 func init() {
 	fmt.Println("init 函数1")
+	arr := []int{4,1,5,3,8,2,4,4}
+	heapSort(arr)
+	fmt.Println(arr)
 }
 
 func init() {
 	fmt.Println("init 函数2")
+	arr := []int{4,1,5,3,8,2,4,4}
+	quickSort(arr,0,len(arr)-1)
+	fmt.Println(arr)
+
+	test()
 }
+
 
 /*var声明变量类型；全局变量*/
 var m, n = 20, "String"
@@ -236,8 +245,6 @@ func main() {
 
 	 */
 
-
-	/*go中没有while*/
 	/*
 		switch语句执行过程从上至下，直到找到匹配项，匹配项后面不需要加break
 		switch默认情况下case最后自带break语句，匹配成功后就不会执行其他case，如果需要执行后面的case，可以使用fallthrough
@@ -349,7 +356,7 @@ func main() {
 	fmt.Println("Go 语言中使用 fmt.Sprintf 格式化字符串并赋值给新串："+fmt.Sprintf(url,stockCode,endDate))
 
 
-
+	/*go中没有while*/
 	/**
 		Go语言的for循环有3中形式，只有其中的一种使用分号
 		1.和C语言的for一样
@@ -1149,5 +1156,91 @@ func Divide(varDividee int, varDivider int) (result int, errorMsg string) {
 		return
 	} else {
 		return varDividee / varDivider, ""
+	}
+}
+
+func quickSort(arr []int, left int, right int) {
+	//4,1,5,3,8,2,4,4 -> 1,2,3,4,4,4,5,8
+	if left < right {
+		pivot, i, j := arr[left], left, right
+		for i < j {
+			for i < j && pivot < arr[j] {
+				j--
+			}
+			if i < j {
+				arr[i] = arr[j]
+				i++
+			}
+			for i<j && arr[i] < pivot {
+				i++
+			}
+			if i < j {
+				arr[j] = arr[i]
+				j--
+			}
+		}
+		arr[i] = pivot
+		quickSort(arr,left,i-1)
+		quickSort(arr,j+1,right)
+	}
+}
+
+func heapSort(arr []int) {
+	l := len(arr)
+	buildHeap(arr,l)
+	for i := l-1; i >= 0; i-- {
+		arr[i],arr[0] = arr[0],arr[i]
+		l--
+		heapify(arr,l,0)
+	}
+}
+
+func buildHeap(arr []int, l int) {
+	for i := int(math.Floor(float64(len(arr) / 2.0))); i >= 0; i-- {
+		heapify(arr,l, i)
+	}
+}
+func heapify(arr []int, l int, idx int) {
+	for true {
+		left, right,parent := idx<<1,(idx<<1)+1,idx
+		for left < l && arr[parent] > arr[left] {
+			parent = left
+		}
+		for right < l && arr[parent] > arr[right] {
+			parent = right
+		}
+		if parent == idx {
+			break
+		}
+		arr[parent],arr[idx] = arr[idx],arr[parent]
+		idx = parent
+	}
+}
+
+func test() {
+	for i := 0; i < 10; i++ {
+		//defer 头插法，LIFO，
+		defer fmt.Println(i)
+	}
+}
+
+func init() {
+	a := getA()
+	if a() == 1 && a() == 12 {
+		fmt.Println("a == 1 && a == 12 is true")
+	} else {
+		fmt.Println("a == 1 && a == 12 is false")
+	}
+}
+
+func getA() func() int {
+	i := 1
+	return func() int {
+		if i == 1 {
+			i++
+			return 1
+		} else {
+			return 12
+		}
 	}
 }
