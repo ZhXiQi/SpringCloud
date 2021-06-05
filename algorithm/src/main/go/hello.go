@@ -47,6 +47,7 @@ package main
 	}
 */
 import (
+	"algorithm/leetcode"
 	"fmt"
 	"math"
 	"strconv"
@@ -127,6 +128,10 @@ func init() {
 	quickSort(arr,0,len(arr)-1)
 	fmt.Println(arr)
 
+	//go的设计思路是 首字母大写的函数是暴露出来给外部调用的；首字母小写的函数是自己内部使用的；函数/方法首字母大写相当于 public 权限，小写就是 package 权限
+	//struct 里面也是这样的，必须把首字母大写才能进行 jsonMarshal 这种
+	leetcode.LengthOfLIS(arr)	//大写的可以调用
+	//leetcode.mergeKLists([]*leetcode.ListNode{})		//小写的不让调用
 	test()
 }
 
@@ -174,6 +179,7 @@ func main() {
 	*/
 	fmt.Println(unsafe.Sizeof(str),len(str))
 	fmt.Println(i, str)
+
 
 
 	const (
