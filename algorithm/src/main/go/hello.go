@@ -140,7 +140,44 @@ func init() {
 	fmt.Println()
 }
 
-//理解go func背后发生了什么   Begin
+/**
+	理解go func背后发生了什么   Begin
+	Go 语言里面的协程称之为 goroutine，通道称之为 channel
+	Go 语言里创建一个协程非常简单，使用 go 关键词加上一个函数调用就可以了。Go 语言会启动一个新的协程，函数调用将成为这个协程的入口。
+ */
+func init() {
+	/*
+	main 函数运行在主协程(main goroutine)里面，上面的例子中我们在主协程里面启动了一个子协程，子协程又启动了一个孙子协程，孙子协程又启动了一个曾孙子协程。
+	这些协程之间似乎形成了父子、子孙、关系，但是实际上协程之间并不存在这么多的层级关系，在 Go 语言里只有一个主协程，其它都是它的子协程，子协程之间是平行关系。
+	这里的 go 关键字语法和前面的 defer 关键字语法是一样的，它后面跟了一个匿名函数，然后还要带上一对()，表示对匿名函数的调用
+
+	如果主协程运行结束，其它协程就会立即消亡，不管它们是否已经开始运行
+
+	在使用子协程时一定要特别注意保护好每个子协程，确保它们正常安全的运行。因为子协程的异常退出会将异常传播到主协程，直接会导致主协程也跟着挂掉，然后整个程序就崩溃了。
+	为了保护子协程的安全，通常我们会在协程的入口函数开头增加 recover() 语句来恢复协程内部发生的异常，阻断它传播到主协程导致程序崩溃。
+	*/
+	fmt.Println("run in main goroutine")
+	go func() {
+		fmt.Println("run in child goroutine")
+		go func() {
+			fmt.Println("run in grand child goroutine")
+			go func() {
+				//panic 和 recover 的使用方式
+				defer func() {
+					if err := recover();err != nil {
+						fmt.Println("recover()：",err)
+					}
+				}()
+				fmt.Println("run in grand grand child goroutine")
+				//在使用子协程时一定要特别注意保护好每个子协程，确保它们正常安全的运行。因为子协程的异常退出会将异常传播到主协程，直接会导致主协程也跟着挂掉，然后整个程序就崩溃了。
+				panic("wtf")
+			}()
+		}()
+	}()
+	time.Sleep(time.Second)
+	fmt.Println("main goroutine will quit")
+}
+
 func init() {
 	fmt.Printf("init函数3: ")
 	wg := sync.WaitGroup{}
@@ -170,6 +207,11 @@ func init() {
 
 func init() {
 	fmt.Printf("init函数4: ")
+	/*
+	默认情况下，Go 运行时会将线程数会被设置为机器 CPU 逻辑核心数。
+	同时它内置的 runtime 包提供了 GOMAXPROCS(n int) 函数允许我们动态调整线程数，注意这个函数名字是全大写，该函数会返回修改前的线程数，如果参数 n <=0 ，就不会产生修改效果，等价于读操作。
+	获取当前的协程数量可以使用 runtime 包提供的 NumGoroutine() 方法
+	*/
 	runtime.GOMAXPROCS(1) //设置协程调度只有一个P
 	wg := sync.WaitGroup{}
 	wg.Add(20)
@@ -341,7 +383,8 @@ func main() {
 	/*
 		switch语句还可以被用于 type-switch 来判断某个 interface 变量中实际存储的变量类型
 		Type switch语法格式如下：
-		switch x.(type){
+		x.(type) 含义为 类型断言 断言x是type类型并转为type类型，一般  t, ok := x.(type) 如果断言成功，ok为true，t为type类型
+		switch x.(type) {
 			case type:
 				statement(s);
 			case type:
