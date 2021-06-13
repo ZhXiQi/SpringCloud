@@ -1,7 +1,6 @@
 package leetcode
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -52,9 +51,9 @@ func LengthOfLIS(nums []int) int {
 			if nums[j] > nums[i] {
 				dp[i] = int(math.Max(float64(dp[i]), float64(dp[j]+1)))
 			}
-			fmt.Println(dp[i])
+			//fmt.Println(dp[i])
 			result = int(math.Max(float64(result), float64(dp[i])))
-			fmt.Println(result)
+			//fmt.Println(result)
 		}
 	}
 	return result

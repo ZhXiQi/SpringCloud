@@ -50,8 +50,10 @@ import (
 	"algorithm/leetcode"
 	"fmt"
 	"math"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unsafe"
 )
@@ -116,14 +118,16 @@ Go语言变量可以在三个地方声明：
 	同一个包不同源文件的init函数执行顺序，golang spec没做说明，测试下来，执行顺序是源文件名称的字典序。
 */
 func init() {
-	fmt.Println("init 函数1")
+	fmt.Print("init 函数1: ")
 	arr := []int{4,1,5,3,8,2,4,4}
 	heapSort(arr)
 	fmt.Println(arr)
+
+	//math/big 包 支持大数字多精度计算，类似Java的BigDecimal
 }
 
 func init() {
-	fmt.Println("init 函数2")
+	fmt.Print("init 函数2: ")
 	arr := []int{4,1,5,3,8,2,4,4}
 	quickSort(arr,0,len(arr)-1)
 	fmt.Println(arr)
@@ -133,6 +137,84 @@ func init() {
 	leetcode.LengthOfLIS(arr)	//大写的可以调用
 	//leetcode.mergeKLists([]*leetcode.ListNode{})		//小写的不让调用
 	test()
+	fmt.Println()
+}
+
+//理解go func背后发生了什么   Begin
+func init() {
+	fmt.Printf("init函数3: ")
+	wg := sync.WaitGroup{}
+	wg.Add(20)
+	for i := 0; i < 10; i++ {
+		go func() {
+			fmt.Print(" A: ", i)
+			wg.Done()
+		}()
+	}
+	for i := 0; i < 10; i++ {
+		go func(i int) {
+			fmt.Print(" B: ", i)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+
+	fmt.Println()
+	/**
+	结论：
+	A与B所在的协程执行顺序不确定，A输出的大部分为10，可能输出i的中间值
+	B输出的是0到9的值，输出顺序也是不确定的。
+	这是因为A与B分布在不同的goroutine队列
+	 */
+}
+
+func init() {
+	fmt.Printf("init函数4: ")
+	runtime.GOMAXPROCS(1) //设置协程调度只有一个P
+	wg := sync.WaitGroup{}
+	wg.Add(20)
+	for i := 0; i < 10; i++ {
+		go func() {
+			fmt.Print(" A: ", i)
+			wg.Done()
+		}()
+	}
+	for i := 0; i < 10; i++ {
+		go func(i int) {
+			fmt.Print(" B: ", i)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	fmt.Println()
+	/**
+	结论：
+	多次运行结果都是上面一样。先输出B: 9，然后10个A: 10，然后B输出0到8
+	runtime. GOMAXPROCS(1) 强行指定了只创建一个 “P” 来处理并发，这使得例子中的 20 个 goroutine 会是串行的
+
+	编译器会把 go 后面跟着的函数与参数都打包成g对象，等待系统调度。
+	 */
+}
+func init() {
+	fmt.Print("init函数5: ")
+	runtime.GOMAXPROCS(1)
+	fmt.Printf("print:")
+	for i := 0; i < 10; i++ {
+		go print(" ",i)
+	}
+	time.Sleep(time.Second)
+	fmt.Println()
+}
+
+func init() {
+	fmt.Print("init函数6: ")
+	runtime.GOMAXPROCS(1)
+	for i := 0; i < 10; i++ {
+		go print(" print:",i)
+	}
+	runtime.Gosched()
+	time.Sleep(time.Second)
+	fmt.Println()
 }
 
 
@@ -1226,17 +1308,20 @@ func heapify(arr []int, l int, idx int) {
 func test() {
 	for i := 0; i < 10; i++ {
 		//defer 头插法，LIFO，
-		defer fmt.Println(i)
+		defer fmt.Printf(" defer:%d",i)
 	}
+	fmt.Println()
 }
 
 func init() {
+	fmt.Printf("init函数7: ")
 	a := getA()
 	if a() == 1 && a() == 12 {
 		fmt.Println("a == 1 && a == 12 is true")
 	} else {
 		fmt.Println("a == 1 && a == 12 is false")
 	}
+	fmt.Println()
 }
 
 func getA() func() int {
