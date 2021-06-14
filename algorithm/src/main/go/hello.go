@@ -50,6 +50,7 @@ import (
 	"algorithm/leetcode"
 	"fmt"
 	"math"
+	"math/rand"
 	"runtime"
 	"strconv"
 	"strings"
@@ -144,6 +145,7 @@ func init() {
 	理解go func背后发生了什么   Begin
 	Go 语言里面的协程称之为 goroutine，通道称之为 channel
 	Go 语言里创建一个协程非常简单，使用 go 关键词加上一个函数调用就可以了。Go 语言会启动一个新的协程，函数调用将成为这个协程的入口。
+	注意：即使已经停止等待 goroutine，但只要main函数还没返回，仍在运行的 goroutine 将会继续占用内存
  */
 func init() {
 	/*
@@ -257,6 +259,9 @@ func init() {
 	runtime.Gosched()
 	time.Sleep(time.Second)
 	fmt.Println()
+
+	learnChannel()
+	learnSelect()
 }
 
 
@@ -436,6 +441,15 @@ func main() {
 			default :
 				statement(s);
 		}
+
+	使用 select 处理多个通道
+	- 等待不同类型的值
+	- time.After 函数，返回一个通道，该通道在指定时间后会接收到一个值（发送该值的 goroutine 是 Go 运行时的一部分）
+	- select 和 switch 有点像
+		- 该语句包含的每个 case 都持有一个 通道，用来发送或接收数据
+		- select 会等待直到某个 case 分支的操作就绪，然后就会执行该 case 分支
+
+	select语句在不包含任何 case 的情况下将永远等下去
 	*/
 	fmt.Println()
 	/*
@@ -443,6 +457,25 @@ func main() {
 		chan<- float64 表示只可以用来发送 float64 类型的数据
 		<-chan int 表示只可以用来接收 int 类型的数据
 		<- 总是优先和最左边的类型结合
+
+		通道（channel）可以在多个 goroutine 之间安全的传值
+		通道可以用作变量、函数参数、结构体字段等
+		创建通道用 make 函数，并指定其传输数据的类型：c := make(chan int)
+
+		使用左箭头操作符 <- 向通道发送值 或 从通道接收值
+			- 向通道发送值： c <- 99
+			- 从通道接收值： v := <- c
+		发送操作会等待直到另一个 goroutine 尝试对该通道进行接收操作为止
+			- 执行发送操作的 goroutine 在等待期间将无法执行其他操作
+			- 未在等待通道操作的 goroutine 仍然可以继续自由的运行
+		执行接收操作的 goroutine 将等待直到另一个 goroutine 尝试向该通道进行发送操作为止
+
+		nil 通道
+		- 如果不使用 make 初始化通道，那么通道变量的值就是 nil(零值)
+		- 对 nil 通道进行发送或接收不会引起 panic，但会导致永久阻塞
+		- 对 nil 通道执行 close 函数，那么会引起 panic
+		- nil 通道的用处：
+			- 对于包含 select 语句的循环，如果不希望每次循环都等待 select 所涉及的所有通道，那么可以先将某些通道设为 nil，等到发送值准备就绪之后，再将通道变成一个非nil值并执行发送操作
 	*/
 	var c1, c2, c3 chan int
 	var i1, i2 int
@@ -902,6 +935,10 @@ LOOP:
 		goroutine 是轻量级线程，goroutine的调度是由GoLang运行时进行管理的
 		goroutine语法格式： go 函数名( 参数列表 )    如： go f(x,y,z)
 		Go允许使用 go 语句开启一个新的运行期线程，即 goroutine ，以一个不同的、新创建的 goroutine 来执行一个函数。同一个程序中的所有 goroutine 共享一个地址空间
+
+		- 当 goroutine 在等待通道的发送或接收时，我们就说它被阻塞了
+		- 除了 goroutine 本身占用少量的内存外，被阻塞的 goroutine 并不消耗任何其他资源。goroutine静静的停在那里，等待导致其阻塞的事情来解除阻塞
+		- 当一个或多个 goroutine 因为某些永远无法发生的事情被阻塞时，我们称这种情况为死锁。而出现死锁的程序通常会奔溃或挂起
 	*/
 	go say("world")
 	say("hello")
@@ -964,7 +1001,7 @@ LOOP:
 		Go通过 range 关键字来实现遍历读取到的数据，类似于数组或切片
 		for range遍历通道的时候，要确保通道是一个关闭的通道，否则这个遍历不会结束
 
-		//如果通道接收不到数据后 ok 就为 false，这时通道就可以使用 close() 函数来关闭
+		//如果通道接收不到数据后 ok 就为 false（说明上游通道已关闭），这时当前通道就可以使用 close() 函数来关闭
 		newV, ok := <- c
 		if ok {
 			fmt.Println(newV)
@@ -1377,4 +1414,99 @@ func getA() func() int {
 			return 12
 		}
 	}
+}
+
+func learnChannel() {
+	fmt.Println("---- start channel ----")
+	c := make(chan int)
+	for i := 0; i < 5; i++ {
+		go sleepGopher(i,c)
+	}
+	fmt.Println("------------")
+	for i := 0; i < 5; i++ {
+		//会阻塞，直到从 管道c 里获取到数据
+		gopherId := <- c
+		fmt.Println("gopher ", gopherId, "has finished sleeping")
+	}
+}
+func sleepGopher(id int, c chan int) {
+	time.Sleep(3 * time.Second)
+	fmt.Println("...", id, "snore ...")
+	c <- id
+}
+
+func learnSelect() {
+	c := make(chan int)
+	for i := 0; i < 5; i++ {
+		go sleepGopherRandom(i,c)
+	}
+	//time.After 返回的是一个 channel 对象
+	timeout := time.After(2 * time.Second)
+	for i := 0; i < 5; i++ {
+		select {
+		case gopherId := <- c:
+			fmt.Println("gopher ", gopherId, " has finished sleeping ")
+		case <- timeout:
+			fmt.Println("my patience ran out")
+			return
+		}
+	}
+}
+
+func sleepGopherRandom(id int, c chan int) {
+	time.Sleep(time.Duration(rand.Intn(4000)) * time.Millisecond)
+	c <- id
+}
+
+func sourceGopher(downstream chan string) {
+	fmt.Println("进入sourceGopher")
+	for _, v := range []string{"hello world","a bad apple","goodbye all"} {
+		downstream <- v
+	}
+	close(downstream)
+}
+func filterGopher(upstream, downstream chan string) {
+	fmt.Println("进入filterGopher")
+	/*for {
+		item,ok := <- upstream
+		if !ok {
+			close(downstream)
+			return
+		}
+		if !strings.Contains(item, "bad") {
+			downstream <- item
+		}
+	}*/
+	for item := range upstream {
+		if !strings.Contains(item, "bad") {
+			downstream <- item
+		}
+	}
+	close(downstream)
+}
+func printGopher(downstream chan string) {
+	fmt.Println("进入printGopher")
+	/*for {
+		v,ok := <- downstream
+		if !ok {
+			return
+		}
+		fmt.Println(v)
+	}*/
+	//从通道里面读取值，直到它关闭为止，可以使用 range 关键字达到该目的
+	for v := range downstream {
+		fmt.Println(v)
+	}
+	//通道如果已经关闭来，对取出来的值 打印是个空
+	v := <-downstream
+	fmt.Println("尝试读取一个已关闭的通道：", v)
+}
+
+func init() {
+	fmt.Println("-----filter stream------")
+	c0 := make(chan string)
+	c1 := make(chan string)
+	go sourceGopher(c0)
+	go filterGopher(c0,c1)
+	printGopher(c1)
 }
