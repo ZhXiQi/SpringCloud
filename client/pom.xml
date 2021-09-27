@@ -134,6 +134,14 @@
             <version>5.5.9</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit -->
+        <!--   okhttp3 升级版     -->
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+
 
     </dependencies>
 

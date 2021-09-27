@@ -1,4 +1,4 @@
-package com.springboot.core.util;
+package com.springcloud.client.utils;
 
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
