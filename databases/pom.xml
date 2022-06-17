@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.61</version>
+            <version>1.2.83</version>
         </dependency>
         <!--    MySQL映射JavaBean LocalDateTime 需要Druid高版本要求，LocalDateTime的好处在于 Date 有的它都有，Date没有的它也有，且输出格式更加具有可读性，
                 且SimpleDateFormat不具有线程安全性
